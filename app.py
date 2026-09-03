@@ -1,16 +1,15 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import sqlite3
 from datetime import datetime
 
-# إنشاء تطبيق السيرفر مع وصف للمشروع
 app = FastAPI(
-    title="Field Signal Filter API",
+    title="BlackBox Ultra Platform",
     description="سيرفر سحابي متقدم لتصفية، تحليل، وحفظ الإشارات الميدانية مع نظام إحصاءات",
     version="2.0.0"
 )
 
-# إعداد قاعدة البيانات المحلية (SQLite)
 DB_NAME = "field_signals.db"
 
 def init_db():
@@ -29,92 +28,306 @@ def init_db():
     conn.commit()
     conn.close()
 
-# تشغيل قاعدة البيانات عند بدء السيرفر
 init_db()
 
-# هيكل البيانات الواردة
-class SignalData(BaseModel):
-    signal_value: float
-    threshold: float = 5.0
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    return """
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>منصة تصفية الإشارات الميدانية - BlackBox Ultra</title>
+        <style>
+            :root {
+                --primary: #0f172a;
+                --accent: #3b82f6;
+                --success: #10b981;
+                --bg: #f8fafc;
+                --card-bg: #ffffff;
+                --text: #334155;
+            }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: var(--bg);
+                color: var(--text);
+                margin: 0;
+                padding: 0;
+            }
+            header {
+                background: var(--primary);
+                color: white;
+                padding: 20px 40px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            }
+            header h1 {
+                margin: 0;
+                font-size: 22px;
+            }
+            .badge {
+                background: var(--success);
+                color: white;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 40px auto;
+                padding: 0 20px;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+            .card {
+                background: var(--card-bg);
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+                border-top: 4px solid var(--accent);
+            }
+            .card h3 {
+                margin-top: 0;
+                color: var(--primary);
+            }
+            .metric {
+                font-size: 28px;
+                font-weight: bold;
+                color: var(--accent);
+                margin: 10px 0;
+            }
+            .btn {
+                background: var(--accent);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 15px;
+                transition: background 0.3s;
+                text-decoration: none;
+                display: inline-block;
+            }
+            .btn:hover {
+                background: #2563eb;
+            }
+            footer {
+                text-align: center;
+                padding: 20px;
+                color: #64748b;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>⚡ منصة تصفية الإشارات الميدانية (IIoT)</h1>
+            <div class="badge">النظام متصل ويعمل 🟢</div>
+        </header>
 
-# 1. مسار ترحيبي تجريبي
-@app.get("/")
-def read_root():
-    return {
-        "status": "success",
-        "message": "مرحباً بك! سيرفر تصفية الإشارات الميدانية يعمل بكامل ميزاته المتقدمة."
-    }
+        <div class="container">
+            <div class="grid">
+                <div class="card">
+                    <h3>حالة السيرفر</h3>
+                    <p>المتصل: الإنتاج الأساسي (Production)</p>
+                    <div class="metric">نشط 100%</div>
+                </div>
+                <div class="card">
+                    <h3>قاعدة البيانات</h3>
+                    <p>نظام تخزين الإشارات محلياً (SQLite)</p>
+                    <div class="metric">جاهزة ومتصلة</div>
+                </div>
+                <div class="card">
+                    <h3>التوثيق التقني (API)</h3>
+                    <p>استعراض واجهات البرمجة التفاعلية للعميل</p>
+                    <br>
+                    <a href="/docs" target="_blank" class="btn">فتح وثائق Swagger</a>
+                </div>
+            </div>
 
-# 2. مسار لتصفية وتحليل الإشارة وحفظها في قاعدة البيانات
-@app.post("/filter-signal")
-def filter_signal(data: SignalData):
-    # تصنيف متقدم للإشارة
-    if data.signal_value >= data.threshold * 1.5:
-        action = "قبول الإشارة (قوية جداً وممتازة)"
-    elif data.signal_value >= data.threshold:
-        action = "قبول الإشارة (مقبولة)"
-    else:
-        action = "رفض الإشارة (ضعيفة)"
-        
-    is_valid = data.signal_value >= data.threshold
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            <div class="card">
+                <h3>لوحة التحكم المباشرة للعميل</h3>
+                <p>مرحباً بك! هذه الواجهة تعرض جاهزية المنصة ومراقبة التدفقات الحية وإدارة الإشارات الميدانية بكفاءة عالية.</p>
+            </div>
+        </div>
 
-    # حفظ السجل في قاعدة البيانات
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO signals (signal_value, threshold, is_valid, action, timestamp)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (data.signal_value, data.threshold, is_valid, action, timestamp))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"خطأ في حفظ البيانات: {str(e)}")
+        <footer>
+            جميع الحقوق محفوظة © BlackBox Ultra Platform 2026
+        </footer>
+    </body>
+    </html>
+    """from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+import sqlite3
+from datetime import datetime
 
-    return {
-        "status": "success",
-        "signal_value": data.signal_value,
-        "threshold": data.threshold,
-        "is_valid": is_valid,
-        "action": action,
-        "timestamp": timestamp
-    }
+app = FastAPI(
+    title="BlackBox Ultra Platform",
+    description="سيرفر سحابي متقدم لتصفية، تحليل، وحفظ الإشارات الميدانية مع نظام إحصاءات",
+    version="2.0.0"
+)
 
-# 3. مسار الإحصاءات الفورية
-@app.get("/stats")
-def get_statistics():
+DB_NAME = "field_signals.db"
+
+def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    cursor.execute("SELECT COUNT(*) FROM signals")
-    total_signals = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM signals WHERE is_valid = 1")
-    accepted_signals = cursor.fetchone()[0]
-    
-    cursor.execute("SELECT COUNT(*) FROM signals WHERE is_valid = 0")
-    rejected_signals = cursor.fetchone()[0]
-    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS signals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            signal_value REAL,
+            threshold REAL,
+            is_valid BOOLEAN,
+            action TEXT,
+            timestamp TEXT
+        )
+    ''')
+    conn.commit()
     conn.close()
-    
-    return {
-        "total_scans": total_signals,
-        "accepted_signals": accepted_signals,
-        "rejected_signals": rejected_signals,
-        "system_status": "يعمل بكفاءة عالية"
-    }
 
-# 4. مسار لعرض سجلات الإشارات المحفوظة مسبقاً
-@app.get("/history")
-def get_history():
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row  # لجلب النتائج على شكل قاموس مرتب
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM signals ORDER BY id DESC LIMIT 10")
-    rows = cursor.fetchall()
-    conn.close()
-    
-    return {
-        "recent_signals": [dict(row) for row in rows]
-    }
+init_db()
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    return """
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>منصة تصفية الإشارات الميدانية - BlackBox Ultra</title>
+        <style>
+            :root {
+                --primary: #0f172a;
+                --accent: #3b82f6;
+                --success: #10b981;
+                --bg: #f8fafc;
+                --card-bg: #ffffff;
+                --text: #334155;
+            }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: var(--bg);
+                color: var(--text);
+                margin: 0;
+                padding: 0;
+            }
+            header {
+                background: var(--primary);
+                color: white;
+                padding: 20px 40px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            }
+            header h1 {
+                margin: 0;
+                font-size: 22px;
+            }
+            .badge {
+                background: var(--success);
+                color: white;
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            .container {
+                max-width: 1200px;
+                margin: 40px auto;
+                padding: 0 20px;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+            .card {
+                background: var(--card-bg);
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+                border-top: 4px solid var(--accent);
+            }
+            .card h3 {
+                margin-top: 0;
+                color: var(--primary);
+            }
+            .metric {
+                font-size: 28px;
+                font-weight: bold;
+                color: var(--accent);
+                margin: 10px 0;
+            }
+            .btn {
+                background: var(--accent);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 15px;
+                transition: background 0.3s;
+                text-decoration: none;
+                display: inline-block;
+            }
+            .btn:hover {
+                background: #2563eb;
+            }
+            footer {
+                text-align: center;
+                padding: 20px;
+                color: #64748b;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>⚡ منصة تصفية الإشارات الميدانية (IIoT)</h1>
+            <div class="badge">النظام متصل ويعمل 🟢</div>
+        </header>
+
+        <div class="container">
+            <div class="grid">
+                <div class="card">
+                    <h3>حالة السيرفر</h3>
+                    <p>المتصل: الإنتاج الأساسي (Production)</p>
+                    <div class="metric">نشط 100%</div>
+                </div>
+                <div class="card">
+                    <h3>قاعدة البيانات</h3>
+                    <p>نظام تخزين الإشارات محلياً (SQLite)</p>
+                    <div class="metric">جاهزة ومتصلة</div>
+                </div>
+                <div class="card">
+                    <h3>التوثيق التقني (API)</h3>
+                    <p>استعراض واجهات البرمجة التفاعلية للعميل</p>
+                    <br>
+                    <a href="/docs" target="_blank" class="btn">فتح وثائق Swagger</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>لوحة التحكم المباشرة للعميل</h3>
+                <p>مرحباً بك! هذه الواجهة تعرض جاهزية المنصة ومراقبة التدفقات الحية وإدارة الإشارات الميدانية بكفاءة عالية.</p>
+            </div>
+        </div>
+
+        <footer>
+            جميع الحقوق محفوظة © BlackBox Ultra Platform 2026
+        </footer>
+    </body>
+    </html>
+    """
