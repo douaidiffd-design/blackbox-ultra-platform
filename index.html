@@ -432,7 +432,7 @@
     </div>
 
     <script>
-        // نظام التخزين المزدوج لضمان حفظ الأكواد والسجلات بشكل دائم حتى لو تم حظر localStorage
+        // نظام التخزين المزدوج والتزامن الفوري لضمان حفظ الأكواد والسجلات عبر الأجهزة والمتصفحات
         const STORAGE_KEY_CODES = 'ecu_custom_learned_codes_v2';
         const STORAGE_KEY_LOGS  = 'ecu_daily_session_logs_v2';
         let memoryFallbackCodes = {};
@@ -453,10 +453,19 @@
                 localStorage.setItem(key, JSON.stringify(value));
                 return true;
             } catch (e) {
-                console.warn("Could not write to localStorage, using session memory:", e);
+                console.warn("Could not write to localStorage:", e);
                 return false;
             }
         }
+
+        // الاستماع الفوري للتحديثات بين النوافذ والأجهزة المتصلة
+        window.addEventListener('storage', function(e) {
+            if (e.key === STORAGE_KEY_CODES) {
+                renderDictionaryList();
+            } else if (e.key === STORAGE_KEY_LOGS) {
+                renderSessionLogsList();
+            }
+        });
 
         function getCustomDictionary() {
             const stored = safeGetStorage(STORAGE_KEY_CODES, null);
@@ -1698,14 +1707,12 @@
             if (manualDesc) {
                 saveCustomCode(dtc, manualDesc, manualDesc, manualDesc);
             } else {
-                // البحث في القاموس الأساسي أو التوليد التلقائي وحفظه فوراً في السجل والقاموس
                 let resolvedDesc = getDtcDescription(dtc, 'ar');
                 let resolvedFr = getDtcDescription(dtc, 'fr');
                 let resolvedEn = getDtcDescription(dtc, 'en');
                 saveCustomCode(dtc, resolvedDesc, resolvedFr, resolvedEn);
             }
 
-            // تحديث واجهة القائمة فوراً وإظهار الكود الجديد في الأعلى
             renderDictionaryList();
 
             let successMsg = currentLang === 'ar' 
@@ -1724,7 +1731,6 @@
             let currentLangKey = currentLang;
             let html = "<ul style='list-style:none; padding:0; margin:0;'>";
             
-            // عرض الأكواد المضافة والمحفوظة في السجل في أعلى القائمة أولاً
             let customDb = getCustomDictionary();
             let customKeys = Object.keys(customDb).reverse();
             customKeys.forEach(code => {
@@ -1733,7 +1739,6 @@
                 html += `<li style="padding:7px 4px; border-bottom:1px solid var(--table-border); background:rgba(0, 255, 102, 0.06);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
             });
 
-            // عرض الأكواد الأساسية المدمجة
             for (let code in baseDescriptions[currentLangKey]) {
                 if (!customDb[code]) {
                     html += `<li style="padding:6px 4px; border-bottom:1px solid var(--table-border);"><strong>${code}:</strong> ${baseDescriptions[currentLangKey][code]}</li>`;
