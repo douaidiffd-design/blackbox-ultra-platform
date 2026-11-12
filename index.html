@@ -1,4 +1,7 @@
-eta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="pageTitle">Smart ECU Diagnostic Platform V2</title>
     <!-- ربط تقنية PWA Manifest افتراضياً -->
@@ -6,32 +9,32 @@ eta charset="UTF-8">
     <meta name="theme-color" content="#00adb5">
     <style>
         /* ضبط عام لتجاوب الصور والعناصر مع كافة الشاشات (هاتف، تابلت، كمبيوتر) */
-img, video, canvas, svg {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
+        img, video, canvas, svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
 
-/* حاوية التقرير والتشخيص لتتطابق تلقائياً مع حجم الشاشة والطباعة */
-.print-container, .container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 10px;
-    box-sizing: border-box;
-}
+        /* حاوية التقرير والتشخيص لتتطابق تلقائياً مع حجم الشاشة والطباعة */
+        .print-container, .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            box-sizing: border-box;
+        }
 
-/* التجاوب مع الهواتف الذكية والأجهزة الصغيرة */
-@media screen and (max-width: 768px) {
-    body {
-        font-size: 14px;
-        padding: 5px;
-    }
-    input, select, button {
-        width: 100% !important;
-        margin-bottom: 8px;
-    }
-}
+        /* التجاوب مع الهواتف الذكية والأجهزة الصغيرة */
+        @media screen and (max-width: 768px) {
+            body {
+                font-size: 14px;
+                padding: 5px;
+            }
+            input, select, button {
+                width: 100% !important;
+                margin-bottom: 8px;
+            }
+        }
         :root {
             --bg-color: #121212;
             --container-bg: #1e1e1e;
@@ -44,42 +47,33 @@ img, video, canvas, svg {
             --accent-color: #00adb5;
         }
         @media print {
-    /* إلغاء الهوامش الافتراضية للصفحة وضبط المقاس على A4 */
-    @page {
-        size: A4 portrait;
-        margin: 10mm; /* تقليل الهوامش لحجز مساحة كاملة للمربعات */
-    }
-
-    /* إخفاء العناصر غير المرغوب فيها عند الطباعة مثل الأزرار والقوائم الجانبية إن وجدت */
-    body * {
-        visibility: hidden;
-    }
-
-    /* إظهار حاوية التقرير الخاصة بالطباعة فقط وبشكل كامل */
-    .print-container, .print-container * {
-        visibility: visible;
-    }
-
-    /* تثبيت مكان التقرير ليملأ الشاشة والورقة بالكامل دون اقتطاع */
-    .print-container {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    /* ضمان ظهور حدود المربعات وخلفيتها بشكل واضح وداكن تماماً */
-    input, textarea, select {
-        border: 1px solid #000 !important;
-        background: transparent !important;
-        color: #000 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-}
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            body * {
+                visibility: hidden;
+            }
+            .print-container, .print-container * {
+                visibility: visible;
+            }
+            .print-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            input, textarea, select {
+                border: 1px solid #000 !important;
+                background: transparent !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
         [data-theme="light"] {
             --bg-color: #f4f6f9;
             --container-bg: #ffffff;
@@ -187,7 +181,6 @@ img, video, canvas, svg {
             width: 100%;
         }
 
-        /* تنسيقات الألوان والبطاقات الـ 28 */
         .card-ai { background: linear-gradient(135deg, #7b2cbf, #9d4edd); border-color: #e0aaff; }
         .card-crowd { background: linear-gradient(135deg, #0077b6, #00b4d8); border-color: #90e0ef; }
         .card-voice { background: linear-gradient(135deg, #d90429, #ff70a6); border-color: #ff99c8; }
@@ -271,14 +264,6 @@ img, video, canvas, svg {
         .result-table th { background: var(--table-th-bg); color: var(--accent-color); width: 38%; }
         .result-table td { color: var(--text-color); }
         .badge-new { background: #00ff66; color: #000; font-size: 9px; padding: 2px 4px; border-radius: 4px; font-weight: bold; margin-left: 2px; margin-right: 2px; }
-
-        @media print {
-            body { background-color: #ffffff !important; color: #000000 !important; }
-            .top-bar, .lang-bar, .back-menu-btn, .action-btn, .connection-container { display: none !important; }
-            .container { width: 100% !important; box-shadow: none !important; background: #ffffff !important; color: #000000 !important; padding: 0 !important; }
-            .tool-card { background: #ffffff !important; border: 1px solid #ddd !important; color: #000000 !important; }
-            .result-table th { background: #eee !important; color: #000 !important; }
-        }
     </style>
 </head>
 <body>
@@ -297,7 +282,6 @@ img, video, canvas, svg {
 
         <h2 id="uiTitle">Smart ECU Diagnostic Platform V2</h2>
 
-        <!-- قائمة الأيقونات الـ 28 كاملة ومضبوطة مع خاصية التمرير -->
         <div id="dashboardMenu">
             <div class="app-card card-ai" onclick="openSection('ai_predictor')">
                 <div class="icon">🤖</div>
@@ -416,7 +400,7 @@ img, video, canvas, svg {
         <div id="sectionContent" style="display: none;"></div>
     </div>
 
-    <!-- زر ونموذج جمع الآراء والملاحظات العائم -->
+    <!-- نموذج جمع الآراء والملاحظات -->
     <div id="feedbackWidgetContainer">
         <button id="openFeedbackBtn" style="position: fixed; bottom: 10px; left: 10px; z-index: 9999; background: #2563eb; color: #fff; border: none; padding: 6px 10px; border-radius: 30px; cursor: pointer; font-family: Tahoma; font-size: 10px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
             💬 تقييم المنصة والملاحظات
@@ -451,11 +435,9 @@ img, video, canvas, svg {
     </div>
 
     <script>
-        // دالة حماية أيقونة المسؤول برقم سري آمن
         function accessAdminPanel() {
             const adminPass = "2026";
             const userInput = prompt("Admin PIN Required:");
-            
             if (userInput === adminPass) {
                 alert("Access Granted. Welcome to Admin Panel.");
                 openSection('admin');
@@ -464,7 +446,6 @@ img, video, canvas, svg {
             }
         }
 
-        // تفاعل نافذة جمع الآراء والملاحظات
         const feedbackModal = document.getElementById('feedbackModal');
         const openFeedbackBtn = document.getElementById('openFeedbackBtn');
         const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
@@ -480,16 +461,11 @@ img, video, canvas, svg {
             const name = document.getElementById('userName').value || 'مستخدم مجهول';
             const rating = document.getElementById('userRating').value;
             const comment = document.getElementById('userComment').value;
-
-            const feedbackData = { name, rating, comment, date: new Date().toISOString() };
-            console.log("Feedback Received:", feedbackData);
-
             alert("شكراً لك! تم استلام ملاحظتك بنجاح ومساعدتنا في تحسين المنصة.");
             feedbackModal.style.display = 'none';
             document.getElementById('feedbackForm').reset();
         }
 
-        // إعداد خاصية التثبيت PWA برمجياً داخل الكود
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -509,7 +485,6 @@ img, video, canvas, svg {
             }
         });
 
-        // إنشاء وتفعيل ملف Manifest عبر Blob ديناميكياً مع أيقونة معيارية آمنة
         const manifestData = {
             "name": "Smart ECU Diagnostic Platform V2",
             "short_name": "ECU Platform",
@@ -851,7 +826,7 @@ img, video, canvas, svg {
                 liveDataHeader: "📡 Flux de Données Moteur en Direct:", rpmLabel: "Régime Moteur (RPM):", tempLabel: "Température LDR:", speedLabel: "Vitesse Véhicule:",
                 status: "Statut", code: "Code Défaut", desc: "Description et Traduction", severity: "Sévérité", source: "Source", power: "Puissance du Signal",
                 valStatusActive: "Actif et Prêt", valSourceECM: "Unité ECM Principale", valPowerOptimal: "99.8% (Optimal)",
-                sevHigh: "Élevé (High)", sevMedium: "Moyen (Medium)", sevCritical: "Critique (Critical)", sevLow: "Faible (Low)",
+                sevHigh: "Élevé (High)", sevMedium: "Moyen (Medium)", sevCritical: "Critique (Critique)", sevLow: "Faible (Low)",
                 dtcConfirmedTitle: "🚨 [Code Défaut Confirmé à 100%]", dtcFilteredTitle: "🛡️ [Signal Parasite Filtré avec Succès]",
 
                 lightingTitle: "Gestion de l'Éclairage et Journal", lightingMode: "Mode d'éclairage:", modeNight: "Mode Nuit", modeDay: "Mode Jour", saveLogBtn: "Enregistrer la session", clearLogsBtn: "🗑️ Effacer les journaux",
@@ -939,7 +914,7 @@ img, video, canvas, svg {
                 pinoutTitle: "ECU Pinout Database", pinoutSub: "Select ECU model to view pinout diagram:", ecuTypeLabel: "ECU Model:", pinNumHeader: "Pin Number", pinSignalHeader: "Signal / Function", pinColorHeader: "Standard Wire Color",
                 checksumTitle: "Advanced Checksum Calculator", checksumSub: "Perform checksum correction and map adjustments:", runChecksumBtn: "🔍 Verify & Correct Checksum",
                 actuatorTitle: "Actuator & Sensor Tests", actuatorSub: "Test and activate electrical components manually:", testPumpBtn: "⛽ Test Fuel Pump", testFansBtn: "🌀 Test Radiator Fans", testInjectorsBtn: "💉 Test Injectors", testThrottleBtn: "🔄 Test Throttle Actuator", testOkMsg: "✔️ Test passed, component functional.",
-                officialReportTitle: "Official Workshop Reports", workshopNameLabel: "Workshop / Center Name:", workshopNameVal: "Pro Diagnostic Center", techNameLabel: "Technician Name:", techNamePh: "Technician name", clientNameLabel: "Client Name:", clientNamePh: "Client name", carDetailsLabel: "Vehicle Details:", carDetailsPh: "Ex: Golf 7", vinNumLabel: "VIN Number:", vinNumPh: "17 Chars", faultSummaryLabel: "Fault Summary & Notes:", faultSummaryPh: "System notes...", printOfficialBtn: "📄 Print Official Certified Report",
+                officialReportTitle: "Official Workshop Reports", workshopNameLabel: "Workshop / Center Name:", workshopNameVal: "Pro Diagnostic Center", techNameLabel: "Technician Name:", techNamePh: "Technician name", clientNameLabel: "Client Name:", clientNamePh: "Client name", carDetailsLabel: "Vehicle Details:", carDetailsPh: "Ex: Golf 7", vinNumLabel: "VIN Number:", vinNumPh: "17 Chars", faultSummaryLabel: "Fault Summary & Notes:", faultSummaryPh: "System notes...", printOfficialFile: "📄 Print Official Certified Report",
                 "bin-comparator": "Binary Comparator (Hex Diff)", file1Label: "Original Map File:", file2Label: "Modified Map File:", chooseFileBtn: "Choose File", noFileSelected: "No file chosen", compareBtn: "Compare Files", cmpResultHeader: "Difference Results:",
                 msgEnterCode: "Please enter diagnostic code and signal value!", fillFieldsMsg: "Please fill all required fields!"
             }
