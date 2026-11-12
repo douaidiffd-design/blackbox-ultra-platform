@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title id="pageTitle">Smart ECU Diagnostic Platform V2</title>
+    <title id="pageTitle">منصة التشخيص الذكية لوحدات التحكم (Smart ECU Diagnostic Platform)</title>
     <!-- ربط تقنية PWA Manifest افتراضياً -->
     <link rel="manifest" id="dynamicManifest" href="">
     <meta name="theme-color" content="#00adb5">
@@ -20,19 +20,19 @@
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 10px;
+            padding: 12px;
             box-sizing: border-box;
         }
 
         /* التجاوب مع الهواتف الذكية والأجهزة الصغيرة */
         @media screen and (max-width: 768px) {
             body {
-                font-size: 14px;
-                padding: 5px;
+                font-size: 16px;
+                padding: 6px;
             }
             input, select, button {
                 width: 100% !important;
-                margin-bottom: 8px;
+                margin-bottom: 10px;
             }
         }
         :root {
@@ -91,7 +91,8 @@
             background-color: var(--bg-color); 
             color: var(--text-color); 
             text-align: center; 
-            padding: 6px; 
+            font-size: 16px;
+            padding: 8px; 
             margin: 0;
             min-height: 100vh;
             box-sizing: border-box;
@@ -104,16 +105,16 @@
             align-items: center; 
             width: 100%; 
             max-width: 100%;
-            margin: 0 auto 6px auto; 
-            gap: 4px; 
+            margin: 0 auto 8px auto; 
+            gap: 6px; 
             box-sizing: border-box;
             padding: 0 2px;
         }
 
         .container { 
             background: var(--container-bg); 
-            padding: 10px; 
-            border-radius: 8px; 
+            padding: 14px; 
+            border-radius: 10px; 
             display: block; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
             width: 100%; 
@@ -123,10 +124,10 @@
             box-sizing: border-box; 
         }
 
-        h2 { text-align: center; color: var(--accent-color); margin-bottom: 10px; font-size: 16px; }
+        h2 { text-align: center; color: var(--accent-color); margin-bottom: 14px; font-size: 22px; font-weight: bold; }
         
-        .lang-bar { display: flex; gap: 4px; margin-bottom: 10px; justify-content: center; direction: ltr; unicode-bidi: isolate; }
-        .lang-btn, .control-btn { background: var(--table-th-bg); color: var(--text-color); border: 1px solid var(--input-border); padding: 5px 8px; cursor: pointer; border-radius: 4px; font-size: 11px; }
+        .lang-bar { display: flex; gap: 6px; margin-bottom: 12px; justify-content: center; direction: ltr; unicode-bidi: isolate; }
+        .lang-btn, .control-btn { background: var(--table-th-bg); color: var(--text-color); border: 1px solid var(--input-border); padding: 7px 12px; cursor: pointer; border-radius: 6px; font-size: 14px; }
         .lang-btn:hover, .lang-btn.active, .control-btn:hover { background: var(--accent-color); color: #fff; font-weight: bold; }
         
         #installAppBtn { background: #00ff66; color: #000; font-weight: bold; display: none; }
@@ -135,44 +136,44 @@
         #dashboardMenu {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            padding: 2px 0;
+            gap: 10px;
+            padding: 4px 0;
             justify-items: center;
-            max-height: calc(100vh - 110px);
+            max-height: calc(100vh - 130px);
             overflow-y: auto;
         }
 
         .app-card {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
             width: 100%;
-            height: 85px;
+            height: 105px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            padding: 4px;
+            padding: 8px;
             box-sizing: border-box;
             text-decoration: none;
         }
 
         .app-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 255, 102, 0.25);
+            box-shadow: 0 4px 12px rgba(0, 255, 102, 0.3);
             border-color: #00ff66;
         }
 
-        .app-card .icon { font-size: 22px; margin-bottom: 2px; }
+        .app-card .icon { font-size: 28px; margin-bottom: 5px; }
         .app-card .title {
             color: #ffffff;
-            font-size: 10px;
+            font-size: 14px;
             font-weight: bold;
             text-align: center;
-            line-height: 1.1;
+            line-height: 1.25;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
@@ -210,60 +211,60 @@
         .card-report { background: linear-gradient(135deg, #2b9348, #55a630); }
         .card-bin { background: linear-gradient(135deg, #bc6c25, #dda15e); }
 
-        .back-menu-btn { background: #e63946; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 10px; font-size: 11px; }
+        .back-menu-btn { background: #e63946; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 12px; font-size: 14px; }
         .back-menu-btn:hover { background: #d62828; }
 
-        .tool-card { background: var(--table-bg); border: 1px solid var(--table-border); padding: 10px; border-radius: 8px; margin-top: 6px; text-align: inherit; }
-        .tool-card h3 { color: var(--accent-color); margin-top: 0; font-size: 14px; border-bottom: 1px solid var(--table-border); padding-bottom: 5px; text-align: inherit; }
+        .tool-card { background: var(--table-bg); border: 1px solid var(--table-border); padding: 14px; border-radius: 10px; margin-top: 8px; text-align: inherit; font-size: 15px; }
+        .tool-card h3 { color: var(--accent-color); margin-top: 0; font-size: 18px; border-bottom: 1px solid var(--table-border); padding-bottom: 8px; text-align: inherit; }
         
         label, input, select, button.action-btn { display: block; width: 100%; box-sizing: border-box; }
-        label { margin-bottom: 2px; font-weight: bold; font-size: 11px; margin-top: 5px; }
-        input, select { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--input-border); padding: 8px; margin: 4px 0; border-radius: 6px; font-size: 12px; direction: inherit; text-align: inherit; }
-        select { background-image: none; padding-left: 6px; }
+        label { margin-bottom: 4px; font-weight: bold; font-size: 14px; margin-top: 8px; }
+        input, select { background: var(--bg-color); color: var(--text-color); border: 1px solid var(--input-border); padding: 10px; margin: 5px 0; border-radius: 6px; font-size: 15px; direction: inherit; text-align: inherit; }
+        select { background-image: none; padding-left: 8px; }
 
-        .custom-file-input { display: flex; align-items: center; gap: 5px; background: var(--bg-color); border: 1px solid var(--input-border); padding: 4px; border-radius: 6px; margin: 4px 0; }
-        .custom-file-btn { background: var(--accent-color); color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px; white-space: nowrap; }
-        .custom-file-label { font-size: 10px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .custom-file-input { display: flex; align-items: center; gap: 6px; background: var(--bg-color); border: 1px solid var(--input-border); padding: 6px; border-radius: 6px; margin: 5px 0; }
+        .custom-file-btn { background: var(--accent-color); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; white-space: nowrap; }
+        .custom-file-label { font-size: 13px; color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 
-        button.action-btn { background: var(--accent-color); color: #fff; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 6px; font-size: 13px; }
+        button.action-btn { background: var(--accent-color); color: #fff; border: none; padding: 11px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 8px; font-size: 16px; }
         button.action-btn:hover { opacity: 0.9; }
 
-        .clear-btn { background: #d90429; margin-top: 5px; }
+        .clear-btn { background: #d90429; margin-top: 6px; }
         .clear-btn:hover { background: #ef233c; }
 
-        .cloud-sync-btn { background: #3a86ff; margin-top: 5px; }
+        .cloud-sync-btn { background: #3a86ff; margin-top: 6px; }
         .cloud-sync-btn:hover { background: #2667cc; }
 
         .voice-active-btn { animation: pulseAnim 1.5s infinite; background: #ff0055 !important; color: #fff !important; }
-        @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(255, 0, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); } }
+        @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 0, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); } }
 
-        .connection-container { display: flex; gap: 5px; margin-bottom: 8px; }
-        .conn-btn { flex: 1; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--accent-color); padding: 6px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 10px; text-align: center; }
+        .connection-container { display: flex; gap: 8px; margin-bottom: 10px; }
+        .conn-btn { flex: 1; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--accent-color); padding: 9px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; text-align: center; }
         .conn-btn:hover { background: var(--accent-color); color: #fff; }
 
-        .export-btn { background: #2a9d8f; margin-top: 5px; }
+        .export-btn { background: #2a9d8f; margin-top: 6px; }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-        .stat-box { background: var(--bg-color); border: 1px solid var(--table-border); padding: 8px; border-radius: 6px; text-align: center; }
-        .stat-number { font-size: 14px; font-weight: bold; color: var(--accent-color); margin-top: 2px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .stat-box { background: var(--bg-color); border: 1px solid var(--table-border); padding: 12px; border-radius: 8px; text-align: center; font-size: 14px; }
+        .stat-number { font-size: 18px; font-weight: bold; color: var(--accent-color); margin-top: 4px; }
 
-        .auth-container { display: flex; gap: 8px; margin-top: 8px; }
-        .auth-box { flex: 1; background: var(--input-bg); padding: 8px; border-radius: 6px; border: 1px solid var(--input-border); text-align: center; }
+        .auth-container { display: flex; gap: 10px; margin-top: 10px; }
+        .auth-box { flex: 1; background: var(--input-bg); padding: 12px; border-radius: 8px; border: 1px solid var(--input-border); text-align: center; }
         
-        .plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-        .plan-card { background: var(--bg-color); border: 1px solid var(--accent-color); padding: 8px; border-radius: 6px; text-align: center; }
-        .plan-title { font-weight: bold; color: var(--accent-color); margin-bottom: 2px; font-size: 11px; }
-        .plan-price { font-size: 13px; font-weight: bold; color: #2a9d8f; margin: 4px 0; }
-        .subscribe-btn { background: #e07a5f; color: #fff; border: none; padding: 4px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 4px; font-size: 10px; }
+        .plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .plan-card { background: var(--bg-color); border: 1px solid var(--accent-color); padding: 12px; border-radius: 8px; text-align: center; }
+        .plan-title { font-weight: bold; color: var(--accent-color); margin-bottom: 4px; font-size: 14px; }
+        .plan-price { font-size: 16px; font-weight: bold; color: #2a9d8f; margin: 6px 0; }
+        .subscribe-btn { background: #e07a5f; color: #fff; border: none; padding: 7px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 6px; font-size: 13px; }
         .subscribe-btn:hover { opacity: 0.9; }
 
-        .payment-box { background: var(--input-bg); border: 1px solid var(--table-border); padding: 8px; border-radius: 6px; margin-top: 8px; text-align: right; display: none; }
+        .payment-box { background: var(--input-bg); border: 1px solid var(--table-border); padding: 12px; border-radius: 8px; margin-top: 10px; text-align: right; display: none; }
 
-        .result-table { margin-top: 10px; width: 100%; border-collapse: collapse; background: var(--bg-color); border-radius: 6px; overflow: hidden; font-size: 11px; }
-        .result-table th, .result-table td { padding: 6px; border: 1px solid var(--table-border); }
+        .result-table { margin-top: 12px; width: 100%; border-collapse: collapse; background: var(--bg-color); border-radius: 8px; overflow: hidden; font-size: 14px; }
+        .result-table th, .result-table td { padding: 9px; border: 1px solid var(--table-border); }
         .result-table th { background: var(--table-th-bg); color: var(--accent-color); width: 38%; }
         .result-table td { color: var(--text-color); }
-        .badge-new { background: #00ff66; color: #000; font-size: 9px; padding: 2px 4px; border-radius: 4px; font-weight: bold; margin-left: 2px; margin-right: 2px; }
+        .badge-new { background: #00ff66; color: #000; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 4px; margin-right: 4px; }
     </style>
 </head>
 <body>
@@ -280,7 +281,7 @@
             <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">English</button>
         </div>
 
-        <h2 id="uiTitle">Smart ECU Diagnostic Platform V2</h2>
+        <h2 id="uiTitle">منصة التشخيص الذكية لوحدات التحكم (Smart ECU Diagnostic Platform)</h2>
 
         <div id="dashboardMenu">
             <div class="app-card card-ai" onclick="openSection('ai_predictor')">
@@ -400,34 +401,34 @@
         <div id="sectionContent" style="display: none;"></div>
     </div>
 
-    <!-- نموذج جمع الآراء والملاحظات -->
+    <!-- نموذج جمع الآراء والملاحظات المترجم بالكامل -->
     <div id="feedbackWidgetContainer">
-        <button id="openFeedbackBtn" style="position: fixed; bottom: 10px; left: 10px; z-index: 9999; background: #2563eb; color: #fff; border: none; padding: 6px 10px; border-radius: 30px; cursor: pointer; font-family: Tahoma; font-size: 10px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <button id="openFeedbackBtn" style="position: fixed; bottom: 12px; left: 12px; z-index: 9999; background: #2563eb; color: #fff; border: none; padding: 9px 14px; border-radius: 30px; cursor: pointer; font-family: Tahoma; font-size: 13px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.4);">
             💬 تقييم المنصة والملاحظات
         </button>
 
-        <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center; font-family: Tahoma;">
-            <div style="background: #1e293b; color: #fff; padding: 15px; border-radius: 12px; width: 90%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: right;">
-                <h3 style="margin-top: 0; color: #38bdf8; text-align: center; font-size: 14px;">رأيك يهمنا لتطوير المنصة</h3>
-                <p style="font-size: 0.75rem; color: #94a3b8; text-align: center;">أخبرنا عن تجربتك أو أي مشكلة واجهتك:</p>
+        <div id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 10000; justify-content: center; align-items: center; font-family: Tahoma;">
+            <div id="feedbackModalBox" style="background: #1e293b; color: #fff; padding: 20px; border-radius: 12px; width: 92%; max-width: 390px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); text-align: right;">
+                <h3 id="fbTitle" style="margin-top: 0; color: #38bdf8; text-align: center; font-size: 18px;">رأيك يهمنا لتطوير المنصة</h3>
+                <p id="fbSub" style="font-size: 14px; color: #94a3b8; text-align: center;">أخبرنا عن تجربتك أو أي مشكلة واجهتك:</p>
                 
                 <form id="feedbackForm" onsubmit="submitFeedback(event)">
-                    <label style="display: block; margin-bottom: 2px; font-size: 0.7rem;">اسم المستخدم أو الورشة (اختياري):</label>
-                    <input type="text" id="userName" placeholder="الاسم الكريم..." style="width: 100%; padding: 6px; margin-bottom: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px;">
+                    <label id="fbNameLbl" style="display: block; margin-bottom: 4px; font-size: 14px;">اسم المستخدم أو الورشة (اختياري):</label>
+                    <input type="text" id="userName" placeholder="الاسم الكريم..." style="width: 100%; padding: 9px; margin-bottom: 8px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; font-size: 14px;">
                     
-                    <label style="display: block; margin-bottom: 2px; font-size: 0.7rem;">تقييم الأداء:</label>
-                    <select id="userRating" style="width: 100%; padding: 6px; margin-bottom: 6px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px;">
-                        <option value="ممتاز">⭐⭐⭐⭐⭐ ممتاز</option>
-                        <option value="جيد جداً">⭐⭐⭐⭐ جيد جداً</option>
-                        <option value="مقبول">⭐⭐⭐ مقبول يحتاج تحسين</option>
+                    <label id="fbRatingLbl" style="display: block; margin-bottom: 4px; font-size: 14px;">تقييم الأداء:</label>
+                    <select id="userRating" style="width: 100%; padding: 9px; margin-bottom: 8px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; font-size: 14px;">
+                        <option id="fbOpt1" value="ممتاز">⭐⭐⭐⭐⭐ ممتاز</option>
+                        <option id="fbOpt2" value="جيد جداً">⭐⭐⭐⭐ جيد جداً</option>
+                        <option id="fbOpt3" value="مقبول">⭐⭐⭐ مقبول يحتاج تحسين</option>
                     </select>
 
-                    <label style="display: block; margin-bottom: 2px; font-size: 0.7rem;">الملاحظات أو المقترحات:</label>
-                    <textarea id="userComment" rows="3" required placeholder="اكتب ملاحظاتك هنا..." style="width: 100%; padding: 6px; margin-bottom: 8px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px;"></textarea>
+                    <label id="fbCommentLbl" style="display: block; margin-bottom: 4px; font-size: 14px;">الملاحظات أو المقترحات:</label>
+                    <textarea id="userComment" rows="3" required placeholder="اكتب ملاحظاتك هنا..." style="width: 100%; padding: 9px; margin-bottom: 12px; background: #0f172a; border: 1px solid #475569; color: #fff; border-radius: 6px; font-size: 14px; box-sizing: border-box;"></textarea>
 
-                    <div style="display: flex; gap: 5px;">
-                        <button type="submit" style="flex: 1; background: #22c55e; color: #fff; border: none; padding: 6px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px;">إرسال الملاحظة</button>
-                        <button type="button" id="closeFeedbackBtn" style="background: #64748b; color: #fff; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">إلغاء</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="submit" id="fbSubmitBtn" style="flex: 1; background: #22c55e; color: #fff; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">إرسال الملاحظة</button>
+                        <button type="button" id="closeFeedbackBtn" style="background: #64748b; color: #fff; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;">إلغاء</button>
                     </div>
                 </form>
             </div>
@@ -437,12 +438,13 @@
     <script>
         function accessAdminPanel() {
             const adminPass = "2026";
-            const userInput = prompt("Admin PIN Required:");
+            const t = translations[currentLang] || translations['ar'];
+            const userInput = prompt(t.adminPrompt);
             if (userInput === adminPass) {
-                alert("Access Granted. Welcome to Admin Panel.");
+                alert(t.adminGranted);
                 openSection('admin');
             } else if (userInput !== null) {
-                alert("Incorrect PIN. Access Denied.");
+                alert(t.adminDenied);
             }
         }
 
@@ -458,10 +460,7 @@
 
         function submitFeedback(e) {
             e.preventDefault();
-            const name = document.getElementById('userName').value || 'مستخدم مجهول';
-            const rating = document.getElementById('userRating').value;
-            const comment = document.getElementById('userComment').value;
-            alert("شكراً لك! تم استلام ملاحظتك بنجاح ومساعدتنا في تحسين المنصة.");
+            alert(translations[currentLang].fbAlert);
             feedbackModal.style.display = 'none';
             document.getElementById('feedbackForm').reset();
         }
@@ -486,7 +485,7 @@
         });
 
         const manifestData = {
-            "name": "Smart ECU Diagnostic Platform V2",
+            "name": "Smart ECU Diagnostic Platform",
             "short_name": "ECU Platform",
             "start_url": window.location.href,
             "display": "standalone",
@@ -669,8 +668,10 @@
 
         const translations = {
             ar: {
-                title: "Smart ECU Diagnostic Platform V2",
+                title: "منصة التشخيص الذكية لوحدات التحكم (Smart ECU Diagnostic Platform)",
                 themeDay: "☀️ الوضع النهاري", themeNight: "🌙 الوضع الليلي", resetBtn: "↩️ القائمة الرئيسية",
+                fbBtn: "💬 تقييم المنصة والملاحظات", fbTitle: "رأيك يهمنا لتطوير المنصة", fbSub: "أخبرنا عن تجربتك أو أي مشكلة واجهتك:", fbNameLbl: "اسم المستخدم أو الورشة (اختياري):", fbNamePh: "الاسم الكريم...", fbRatingLbl: "تقييم الأداء:", fbOpt1: "⭐⭐⭐⭐⭐ ممتاز", fbOpt2: "⭐⭐⭐⭐ جيد جداً", fbOpt3: "⭐⭐⭐ مقبول يحتاج تحسين", fbCommentLbl: "الملاحظات أو المقترحات:", fbCommentPh: "اكتب ملاحظاتك هنا...", fbSubmitBtn: "إرسال الملاحظة", fbCancelBtn: "إلغاء", fbAlert: "شكراً لك! تم استلام ملاحظتك بنجاح ومساعدتنا في تحسين المنصة.",
+                adminPrompt: "الرجاء إدخال رمز المسؤول (Admin PIN):", adminGranted: "تم التحقق بنجاح. مرحباً بك في لوحة المسؤول.", adminDenied: "رمز خاطئ! تم رفض الوصول.",
                 ai_predictor: "الذكاء الاصطناعي التنبئي للأعطال", crowd_solutions: "مجتمع الحلول التشاركي العالمي", voice_diag: "التوجيه الصوتي للورشات", auto_fixer: "إصلاح الخرائط التلقائي (DTC Off)", qr_reports: "تقارير QR Code التفاعلية للعملاء",
                 brands: "ماركات السيارات وأنظمة التحكم", store: "متجر قطع الفحص والتوصيل", trial: "وضع التجربة ومحاكاة الإشارات",
                 auth: "إدارة الحسابات والباقات", diagnosis: "فحص الأعطال (القلب النابض)", lighting: "الإضاءة والسجل اليومي",
@@ -783,8 +784,10 @@
                 msgEnterCode: "الرجاء إدخال كود العطل والقيمة الكهربائية أولاً!", fillFieldsMsg: "الرجاء ملء جميع الحقول المطلوبة!"
             },
             fr: {
-                title: "Smart ECU Diagnostic Platform V2",
+                title: "Plateforme Intelligente de Diagnostic ECU",
                 themeDay: "☀️ Mode Jour", themeNight: "🌙 Mode Nuit", resetBtn: "↩️ Menu Principal",
+                fbBtn: "💬 Évaluer et Commenter", fbTitle: "Votre avis compte pour nous", fbSub: "Partagez votre expérience ou signalez un problème :", fbNameLbl: "Nom ou Atelier (optionnel) :", fbNamePh: "Votre nom...", fbRatingLbl: "Évaluation :", fbOpt1: "⭐⭐⭐⭐⭐ Excellent", fbOpt2: "⭐⭐⭐⭐ Très bien", fbOpt3: "⭐⭐⭐ Moyen", fbCommentLbl: "Remarques ou suggestions :", fbCommentPh: "Écrivez vos remarques ici...", fbSubmitBtn: "Envoyer", fbCancelBtn: "Annuler", fbAlert: "Merci ! Votre retour a été enregistré avec succès.",
+                adminPrompt: "Code PIN Administrateur requis :", adminGranted: "Accès autorisé. Bienvenue dans le panneau Admin.", adminDenied: "Code PIN incorrect. Accès refusé.",
                 ai_predictor: "IA Prédictive des Défauts", crowd_solutions: "Solutions Communautaires", voice_diag: "Diagnostic Vocal Main-Libre", auto_fixer: "Correction Auto des Cartes", qr_reports: "Rapports QR Code Clients",
                 brands: "Marques et Systèmes ECU", store: "Commandes d'Outils", trial: "Mode Essai & Simulateur",
                 auth: "Comptes et Abonnements", diagnosis: "Diagnostic à Cœur", lighting: "Éclairage et Journal",
@@ -845,14 +848,16 @@
                 calcTitle: "Calculateur de Carburant et Injecteurs", calcSub: "Calculez le cycle de service des injecteurs et l'AFR:", rpmInputLabel: "RPM:", pwInputLabel: "Largeur d'impulsion (ms):", calcBtn: "Calculer",
                 pinoutTitle: "Base de Données Pinout ECU", pinoutSub: "Sélectionnez le modèle d'ECU:", ecuTypeLabel: "Modèle d'ECU:", pinNumHeader: "Pin", pinSignalHeader: "Signal / Fonction", pinColorHeader: "Couleur de Fil",
                 checksumTitle: "Calculateur Checksum Avancé", checksumSub: "Correction de la somme de contrôle et des cartes:", runChecksumBtn: "🔍 Vérifier et Corriger Checksum",
-                actuatorTitle: "Tests des Actionneurs", actuatorSub: "Tester et activer les composants:", testPumpBtn: "⛽ Test Pompe à Carburant", testFansBtn: "🌀 Test Ventilateurs", testInjectorsBtn: "💉 Test Injectors", testThrottleBtn: "🔄 Test Papillon", testOkMsg: "✔️ Test réussi, le composant fonctionne correctement.",
+                actuatorTitle: "Tests des Actionneurs", actuatorSub: "Tester et activer les composants:", testPumpBtn: "⛽ Test Pompe à Carburant", testFansBtn: "🌀 Test Ventilateurs", testInjectorsBtn: "💉 Test Injecteurs", testThrottleBtn: "🔄 Test Papillon", testOkMsg: "✔️ Test réussi, le composant fonctionne correctement.",
                 officialReportTitle: "Rapports d'Atelier Officiels", workshopNameLabel: "Nom de l'Atelier:", workshopNameVal: "Centre de Diagnostic Pro", techNameLabel: "Technicien:", techNamePh: "Nom du technicien", clientNameLabel: "Client:", clientNamePh: "Nom du client", carDetailsLabel: "Véhicule:", carDetailsPh: "Ex: Golf 7", vinNumLabel: "VIN:", vinNumPh: "17 caractères", faultSummaryLabel: "Résumé des Défauts:", faultSummaryPh: "Notes...", printOfficialBtn: "📄 Imprimer le Rapport Officiel",
                 "bin-comparator": "Comparateur de Fichiers (Hex Diff)", file1Label: "Fichier Original:", file2Label: "Fichier Modifié:", chooseFileBtn: "Choisir un fichier", noFileSelected: "Aucun fichier choisi", compareBtn: "Comparer", cmpResultHeader: "Résultats:",
                 msgEnterCode: "Veuillez entrer un code défaut et une valeur !", fillFieldsMsg: "Veuillez remplir tous les champs obligatoires !"
             },
             en: {
-                title: "Smart ECU Diagnostic Platform V2",
+                title: "Smart ECU Diagnostic Platform",
                 themeDay: "☀️ Day Mode", themeNight: "🌙 Night Mode", resetBtn: "↩️ Main Menu",
+                fbBtn: "💬 Rate & Feedback", fbTitle: "Your Feedback Matters", fbSub: "Tell us about your experience or any issue:", fbNameLbl: "User or Workshop Name (optional):", fbNamePh: "Your name...", fbRatingLbl: "Performance Rating:", fbOpt1: "⭐⭐⭐⭐⭐ Excellent", fbOpt2: "⭐⭐⭐⭐ Very Good", fbOpt3: "⭐⭐⭐ Fair", fbCommentLbl: "Comments or Suggestions:", fbCommentPh: "Write your feedback here...", fbSubmitBtn: "Submit Feedback", fbCancelBtn: "Cancel", fbAlert: "Thank you! Your feedback has been received.",
+                adminPrompt: "Admin PIN Required:", adminGranted: "Access Granted. Welcome to Admin Panel.", adminDenied: "Incorrect PIN. Access Denied.",
                 ai_predictor: "AI Fault Predictor", crowd_solutions: "Crowdsourced Solutions", voice_diag: "Voice-Guided Diagnostics", auto_fixer: "Auto ECU Map Fixer", qr_reports: "Client QR Code Reports",
                 brands: "Car Brands & ECU Systems", store: "Diagnostic Store", trial: "Trial & Simulation Mode",
                 auth: "Accounts & Subscriptions", diagnosis: "Core Diagnostics", lighting: "Lighting & Daily Log",
@@ -914,7 +919,7 @@
                 pinoutTitle: "ECU Pinout Database", pinoutSub: "Select ECU model to view pinout diagram:", ecuTypeLabel: "ECU Model:", pinNumHeader: "Pin Number", pinSignalHeader: "Signal / Function", pinColorHeader: "Standard Wire Color",
                 checksumTitle: "Advanced Checksum Calculator", checksumSub: "Perform checksum correction and map adjustments:", runChecksumBtn: "🔍 Verify & Correct Checksum",
                 actuatorTitle: "Actuator & Sensor Tests", actuatorSub: "Test and activate electrical components manually:", testPumpBtn: "⛽ Test Fuel Pump", testFansBtn: "🌀 Test Radiator Fans", testInjectorsBtn: "💉 Test Injectors", testThrottleBtn: "🔄 Test Throttle Actuator", testOkMsg: "✔️ Test passed, component functional.",
-                officialReportTitle: "Official Workshop Reports", workshopNameLabel: "Workshop / Center Name:", workshopNameVal: "Pro Diagnostic Center", techNameLabel: "Technician Name:", techNamePh: "Technician name", clientNameLabel: "Client Name:", clientNamePh: "Client name", carDetailsLabel: "Vehicle Details:", carDetailsPh: "Ex: Golf 7", vinNumLabel: "VIN Number:", vinNumPh: "17 Chars", faultSummaryLabel: "Fault Summary & Notes:", faultSummaryPh: "System notes...", printOfficialFile: "📄 Print Official Certified Report",
+                officialReportTitle: "Official Workshop Reports", workshopNameLabel: "Workshop / Center Name:", workshopNameVal: "Pro Diagnostic Center", techNameLabel: "Technician Name:", techNamePh: "Technician name", clientNameLabel: "Client Name:", clientNamePh: "Client name", carDetailsLabel: "Vehicle Details:", carDetailsPh: "Ex: Golf 7", vinNumLabel: "VIN Number:", vinNumPh: "17 Chars", faultSummaryLabel: "Fault Summary & Notes:", faultSummaryPh: "System notes...", printOfficialBtn: "📄 Print Official Certified Report",
                 "bin-comparator": "Binary Comparator (Hex Diff)", file1Label: "Original Map File:", file2Label: "Modified Map File:", chooseFileBtn: "Choose File", noFileSelected: "No file chosen", compareBtn: "Compare Files", cmpResultHeader: "Difference Results:",
                 msgEnterCode: "Please enter diagnostic code and signal value!", fillFieldsMsg: "Please fill all required fields!"
             }
@@ -1048,6 +1053,23 @@
             document.getElementById('themeBtn').innerText = isDark ? t.themeDay : t.themeNight;
             document.getElementById('resetBtn').innerText = t.resetBtn;
 
+            if (document.getElementById('openFeedbackBtn')) {
+                document.getElementById('openFeedbackBtn').innerText = t.fbBtn;
+                document.getElementById('fbTitle').innerText = t.fbTitle;
+                document.getElementById('fbSub').innerText = t.fbSub;
+                document.getElementById('fbNameLbl').innerText = t.fbNameLbl;
+                document.getElementById('userName').placeholder = t.fbNamePh;
+                document.getElementById('fbRatingLbl').innerText = t.fbRatingLbl;
+                document.getElementById('fbOpt1').innerText = t.fbOpt1;
+                document.getElementById('fbOpt2').innerText = t.fbOpt2;
+                document.getElementById('fbOpt3').innerText = t.fbOpt3;
+                document.getElementById('fbCommentLbl').innerText = t.fbCommentLbl;
+                document.getElementById('userComment').placeholder = t.fbCommentPh;
+                document.getElementById('fbSubmitBtn').innerText = t.fbSubmitBtn;
+                document.getElementById('closeFeedbackBtn').innerText = t.fbCancelBtn;
+                document.getElementById('feedbackModalBox').style.textAlign = (lang === 'ar') ? 'right' : 'left';
+            }
+
             const keys = ['ai_predictor', 'crowd_solutions', 'voice_diag', 'auto_fixer', 'qr_reports', 'brands', 'store', 'trial', 'auth', 'diagnosis', 'lighting', 'ecu', 'stats', 'admin', 'table', 'solutions', 'matrix', 'hex', 'history', 'print', 'immo', 'scope', 'calc', 'pinout', 'checksum', 'actuator', 'official_report', 'bin-comparator'];
             keys.forEach(key => {
                 const el = document.getElementById(`lbl-${key === 'bin-comparator' ? 'bin_comparator' : key}`);
@@ -1089,47 +1111,47 @@
                 html += `
                     <div class="tool-card">
                         <h3>🤖 ${t.aiTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.aiSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.aiSub}</p>
                         <button class="action-btn" style="background:#7b2cbf;" onclick="runAIPrediction()">${t.aiBtn}</button>
-                        <div id="aiResultBox" style="margin-top:10px;"></div>
+                        <div id="aiResultBox" style="margin-top:12px;"></div>
                     </div>
                 `;
             } else if (type === 'crowd_solutions') {
                 html += `
                     <div class="tool-card">
                         <h3>🌐 ${t.crowdTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.crowdSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.crowdSub}</p>
                         <label>${t.crowdCode}</label><input type="text" id="crowdCodeInput" placeholder="P0300">
                         <label>${t.crowdSolutionText}</label><input type="text" id="crowdSolutionInput" placeholder="Steps...">
                         <button class="action-btn" style="background:#0077b6;" onclick="submitCrowdSolution()">${t.submitCrowdBtn}</button>
-                        <div id="crowdResultBox" style="margin-top:10px;"></div>
+                        <div id="crowdResultBox" style="margin-top:12px;"></div>
                     </div>
                 `;
             } else if (type === 'voice_diag') {
                 html += `
                     <div class="tool-card">
                         <h3>🎙️ ${t.voiceTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.voiceSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.voiceSub}</p>
                         <button class="action-btn" id="voiceStartBtn" style="background:#d90429;" onclick="startVoiceRouter()">${t.startVoiceBtn}</button>
-                        <div id="voiceStatusBox" style="margin-top:10px; font-weight:bold; color:var(--accent-color);"></div>
+                        <div id="voiceStatusBox" style="margin-top:12px; font-weight:bold; color:var(--accent-color); font-size:15px;"></div>
                     </div>
                 `;
             } else if (type === 'auto_fixer') {
                 html += `
                     <div class="tool-card">
                         <h3>⚡ ${t.autoFixerTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.autoFixerSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.autoFixerSub}</p>
                         <button class="action-btn" style="background:#38b000; color:#000;" onclick="runAutoMapFixer()">${t.runAutoFixBtn}</button>
-                        <div id="autoFixResultBox" style="margin-top:10px;"></div>
+                        <div id="autoFixResultBox" style="margin-top:12px;"></div>
                     </div>
                 `;
             } else if (type === 'qr_reports') {
                 html += `
                     <div class="tool-card">
                         <h3>📱 ${t.qrTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.qrSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.qrSub}</p>
                         <button class="action-btn" style="background:#fb8500; color:#000;" onclick="generateQRReport()">${t.generateQrBtn}</button>
-                        <div id="qrCodeBox" style="margin-top:10px; text-align:center;"></div>
+                        <div id="qrCodeBox" style="margin-top:12px; text-align:center;"></div>
                     </div>
                 `;
             } else if (type === 'brands') {
@@ -1149,13 +1171,13 @@
                 html += `
                     <div class="tool-card">
                         <h3>🚘 ${t.brandsTitle}</h3>
-                        <p style="font-size:11px; color:#aaa; margin-bottom:10px;">${t.brandsSub}</p>
+                        <p style="font-size:14px; color:#aaa; margin-bottom:12px;">${t.brandsSub}</p>
                         <label>${t.selectBrandLabel}</label>
-                        <select id="carBrandSelect" style="margin-bottom: 8px;">${brandOptions}</select>
+                        <select id="carBrandSelect" style="margin-bottom: 10px;">${brandOptions}</select>
                         <label>${t.selectSystemLabel}</label>
-                        <select id="ecuSystemSelect" style="margin-bottom: 10px;">${systemOptions}</select>
+                        <select id="ecuSystemSelect" style="margin-bottom: 12px;">${systemOptions}</select>
                         <button class="action-btn" onclick="initBrandDiagnostics()">${t.initConnBtn}</button>
-                        <div id="brandResultBox" style="margin-top: 10px;"></div>
+                        <div id="brandResultBox" style="margin-top: 12px;"></div>
                     </div>
                 `;
             } else if (type === 'diagnosis') {
@@ -1166,22 +1188,22 @@
                             <button class="conn-btn" onclick="connectUSB()">${t.connectUsb}</button>
                             <button class="conn-btn" onclick="connectBluetooth()">${t.connectBt}</button>
                         </div>
-                        <div style="margin-bottom: 8px; font-size:11px; text-align:inherit;">
+                        <div style="margin-bottom: 10px; font-size:14px; text-align:inherit;">
                             <span>${t.connStatus}</span> <strong id="connectionState" style="color:#00a896;">ELM327 Active (Core Filter)</strong>
                         </div>
                         
-                        <div style="background:var(--bg-color); border:1px solid var(--table-border); padding:8px; border-radius:6px; margin-bottom:8px;">
-                            <div style="display:flex; gap:6px; margin-bottom:6px;">
-                                <div style="flex:1;"><label style="font-size:10px;">${t.clientLabelReport}</label><input type="text" id="diagClientName" placeholder="${t.clientLabelReport}"></div>
-                                <div style="flex:1;"><label style="font-size:10px;">${t.vinLabelReport}</label><input type="text" id="diagVinNum" placeholder="17 Chars" style="text-transform:uppercase;"></div>
+                        <div style="background:var(--bg-color); border:1px solid var(--table-border); padding:10px; border-radius:8px; margin-bottom:10px;">
+                            <div style="display:flex; gap:8px; margin-bottom:6px;">
+                                <div style="flex:1;"><label style="font-size:13px;">${t.clientLabelReport}</label><input type="text" id="diagClientName" placeholder="${t.clientLabelReport}"></div>
+                                <div style="flex:1;"><label style="font-size:13px;">${t.vinLabelReport}</label><input type="text" id="diagVinNum" placeholder="17 Chars" style="text-transform:uppercase;"></div>
                             </div>
                         </div>
 
-                        <div style="background:var(--bg-color); border:1px solid var(--table-border); padding:8px; border-radius:6px; margin-bottom:10px;">
-                            <h4 style="color:var(--accent-color); margin-top:0; font-size:11px;">${t.liveDataHeader}</h4>
-                            <div style="display:flex; justify-content:space-between; font-size:11px; margin:3px 0;"><span>${t.rpmLabel}</span><strong id="liveRpm" style="color:#00a896;">850 RPM</strong></div>
-                            <div style="display:flex; justify-content:space-between; font-size:11px; margin:3px 0;"><span>${t.tempLabel}</span><strong id="liveTemp" style="color:#00a896;">88 °C</strong></div>
-                            <div style="display:flex; justify-content:space-between; font-size:11px; margin:3px 0;"><span>${t.speedLabel}</span><strong id="liveSpeed" style="color:#00a896;">0 km/h</strong></div>
+                        <div style="background:var(--bg-color); border:1px solid var(--table-border); padding:10px; border-radius:8px; margin-bottom:12px;">
+                            <h4 style="color:var(--accent-color); margin-top:0; font-size:14px;">${t.liveDataHeader}</h4>
+                            <div style="display:flex; justify-content:space-between; font-size:14px; margin:4px 0;"><span>${t.rpmLabel}</span><strong id="liveRpm" style="color:#00a896;">850 RPM</strong></div>
+                            <div style="display:flex; justify-content:space-between; font-size:14px; margin:4px 0;"><span>${t.tempLabel}</span><strong id="liveTemp" style="color:#00a896;">88 °C</strong></div>
+                            <div style="display:flex; justify-content:space-between; font-size:14px; margin:4px 0;"><span>${t.speedLabel}</span><strong id="liveSpeed" style="color:#00a896;">0 km/h</strong></div>
                         </div>
 
                         <label>${t.inputLabel}</label>
@@ -1191,10 +1213,10 @@
                         <input type="number" id="signalInputVal" value="365" placeholder="365...">
 
                         <button class="action-btn" onclick="runDiagnosis()">${t.searchBtn}</button>
-                        <button class="action-btn" style="background:#4361ee; margin-top:6px;" onclick="runQuickScan()">${t.quickScanBtn}</button>
+                        <button class="action-btn" style="background:#4361ee; margin-top:8px;" onclick="runQuickScan()">${t.quickScanBtn}</button>
                         <button class="action-btn export-btn" onclick="exportDiagnosticReport()">${t.exportReportBtn}</button>
                         <button class="action-btn cloud-sync-btn" onclick="cloudSyncAdvancedData()">${t.saveRecordBtn}</button>
-                        <div id="quickScanResults" style="margin-top: 10px;"></div>
+                        <div id="quickScanResults" style="margin-top: 12px;"></div>
                         <div id="resultBox"></div>
                     </div>
                 `;
@@ -1203,14 +1225,14 @@
                 html += `
                     <div class="tool-card">
                         <h3>🛠️ ${t.tableTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.tableSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.tableSub}</p>
                         <label>${t.newCodeLabel}</label>
                         <input type="text" id="newDtc" placeholder="PXXXX">
                         <label>${t.newDescLabel}</label>
                         <input type="text" id="newDesc" placeholder="${t.placeholderDesc}">
                         <button class="action-btn" onclick="addNewCodeToDictionary()">${t.addCodeBtn}</button>
-                        <h4 style="color:var(--accent-color); margin-top:12px; font-size:12px;">${t.dictionaryHeader}</h4>
-                        <div id="dictionaryList" style="max-height:160px; overflow-y:auto; text-align:inherit; background:var(--bg-color); padding:6px; border-radius:6px; font-size:11px; border:1px solid var(--table-border);"></div>
+                        <h4 style="color:var(--accent-color); margin-top:14px; font-size:15px;">${t.dictionaryHeader}</h4>
+                        <div id="dictionaryList" style="max-height:190px; overflow-y:auto; text-align:inherit; background:var(--bg-color); padding:8px; border-radius:8px; font-size:14px; border:1px solid var(--table-border);"></div>
                     </div>
                 `;
                 setTimeout(renderDictionaryList, 50);
@@ -1218,20 +1240,20 @@
                 html += `
                     <div class="tool-card">
                         <h3>🛒 ${t.storeTitle}</h3>
-                        <p style="font-size:11px; color:#aaa; text-align:inherit; margin-bottom:10px;">${t.storeSub}</p>
-                        <div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:10px; border-radius:6px; margin-bottom:12px;">
+                        <p style="font-size:14px; color:#aaa; text-align:inherit; margin-bottom:12px;">${t.storeSub}</p>
+                        <div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:12px; border-radius:8px; margin-bottom:14px;">
                             <label>${t.nameLabel}</label><input type="text" id="custName" placeholder="${t.nameLabel}">
                             <label>${t.phoneLabel}</label><input type="tel" id="custPhone" placeholder="${t.phoneLabel}">
                             <label>${t.addressLabel}</label><input type="text" id="custAddress" placeholder="${t.addressLabel}">
                         </div>
-                        <div style="background:var(--bg-color); border:1px solid var(--table-border); padding:10px; border-radius:6px; margin-bottom:10px;">
-                            <h4 style="color:var(--accent-color); margin-top:0; font-size:12px;">1. ${t.item1Title}</h4>
-                            <p style="font-size:11px; color:#ccc;">${t.item1Desc}</p>
+                        <div style="background:var(--bg-color); border:1px solid var(--table-border); padding:12px; border-radius:8px; margin-bottom:12px;">
+                            <h4 style="color:var(--accent-color); margin-top:0; font-size:15px;">1. ${t.item1Title}</h4>
+                            <p style="font-size:14px; color:#ccc;">${t.item1Desc}</p>
                             <button class="action-btn" style="background:#00ff66; color:#000;" onclick="alert('${t.orderSentMsg}')">${t.item1Btn}</button>
                         </div>
-                        <div style="background:var(--bg-color); border:1px solid var(--table-border); padding:10px; border-radius:6px; margin-bottom:10px;">
-                            <h4 style="color:var(--accent-color); margin-top:0; font-size:12px;">2. ${t.item2Title}</h4>
-                            <p style="font-size:11px; color:#ccc;">${t.item2Desc}</p>
+                        <div style="background:var(--bg-color); border:1px solid var(--table-border); padding:12px; border-radius:8px; margin-bottom:12px;">
+                            <h4 style="color:var(--accent-color); margin-top:0; font-size:15px;">2. ${t.item2Title}</h4>
+                            <p style="font-size:14px; color:#ccc;">${t.item2Desc}</p>
                             <button class="action-btn" style="background:#00ff66; color:#000;" onclick="alert('${t.orderSentMsg}')">${t.item2Btn}</button>
                         </div>
                     </div>
@@ -1240,9 +1262,9 @@
                 html += `
                     <div class="tool-card">
                         <h3>👁️ ${t.trialTitle}</h3>
-                        <div style="margin:8px 0; font-size:11px;"><span>${t.sensor1}</span><strong id="trialVolt" style="color:#00a896;">4.92 V</strong></div>
-                        <div style="margin:8px 0; font-size:11px;"><span>${t.sensor2}</span><strong id="trialFlow" style="color:#3a86ff;">Stable (12.4 ms)</strong></div>
-                        <div style="margin:8px 0; font-size:11px;"><span>${t.sensor3}</span><strong id="trialStatus" style="color:#2a9d8f;">Ready</strong></div>
+                        <div style="margin:10px 0; font-size:15px;"><span>${t.sensor1}</span><strong id="trialVolt" style="color:#00a896;">4.92 V</strong></div>
+                        <div style="margin:10px 0; font-size:15px;"><span>${t.sensor2}</span><strong id="trialFlow" style="color:#3a86ff;">Stable (12.4 ms)</strong></div>
+                        <div style="margin:10px 0; font-size:15px;"><span>${t.sensor3}</span><strong id="trialStatus" style="color:#2a9d8f;">Ready</strong></div>
                         <button class="action-btn" onclick="runTrialSimulation()">${t.runTest}</button>
                     </div>
                 `;
@@ -1252,32 +1274,32 @@
                         <h3>🚀 ${t.authTitle}</h3>
                         <div class="auth-container">
                             <div class="auth-box">
-                                <h4 style="color:var(--accent-color); margin-top:0; font-size:12px;">${t.loginHeader}</h4>
+                                <h4 style="color:var(--accent-color); margin-top:0; font-size:15px;">${t.loginHeader}</h4>
                                 <label>${t.emailLabel}</label><input type="email" id="authEmail" placeholder="user@domain.com">
                                 <label>${t.passLabel}</label><input type="password" id="authPass" placeholder="******">
                                 <button class="action-btn" onclick="alert('${t.adminSuccess}')">${t.loginBtn}</button>
                             </div>
                         </div>
-                        <h4 style="color:var(--accent-color); margin-top:12px; font-size:12px;">${t.plansHeader}</h4>
+                        <h4 style="color:var(--accent-color); margin-top:14px; font-size:15px;">${t.plansHeader}</h4>
                         <div class="plans-grid">
                             <div class="plan-card">
                                 <div class="plan-title">${t.plan1Title}</div>
                                 <div class="plan-price">${t.plan1Price}</div>
-                                <p style="font-size:10px; color:#aaa;">${t.plan1Desc}</p>
+                                <p style="font-size:13px; color:#aaa;">${t.plan1Desc}</p>
                                 <button class="subscribe-btn" onclick="openPaymentGateway()">${t.subscribeNow}</button>
                             </div>
                             <div class="plan-card">
                                 <div class="plan-title">${t.plan2Title}</div>
                                 <div class="plan-price">${t.plan2Price}</div>
-                                <p style="font-size:10px; color:#aaa;">${t.plan2Desc}</p>
+                                <p style="font-size:13px; color:#aaa;">${t.plan2Desc}</p>
                                 <button class="subscribe-btn" onclick="openPaymentGateway()">${t.subscribeNow}</button>
                             </div>
                         </div>
                         <div id="paymentSection" class="payment-box">
-                            <h4 style="color:var(--accent-color); margin-top:0; font-size:12px;">${t.paymentTitle}</h4>
+                            <h4 style="color:var(--accent-color); margin-top:0; font-size:15px;">${t.paymentTitle}</h4>
                             <label>${t.cardHolder}</label><input type="text" placeholder="Full Name">
                             <label>${t.cardNumber}</label><input type="text" placeholder="XXXX XXXX XXXX XXXX" maxlength="16">
-                            <div style="display:flex; gap:6px;">
+                            <div style="display:flex; gap:8px;">
                                 <div style="flex:1;"><label>${t.cardExp}</label><input type="text" placeholder="MM/YY"></div>
                                 <div style="flex:1;"><label>${t.cardCvv}</label><input type="password" placeholder="CVV" maxlength="3"></div>
                             </div>
@@ -1323,35 +1345,34 @@
                 html += `
                     <div class="tool-card">
                         <h3>🔒 ${t.adminTitle}</h3>
-                        <p style="color:#00ff66; font-weight:bold; font-size:11px;">✔️ تم التحقق بنجاح والدخول للوحة التحكم الآمنة للمسؤول.</p>
-                        <p style="font-size:10px; color:#aaa;">يمكنك هنا مراقبة النظام، تعديل إعدادات المشتركين، وإدارة السجلات السحابية.</p>
+                        <p style="color:#00ff66; font-weight:bold; font-size:15px;">✔️ ${t.adminGranted}</p>
                     </div>
                 `;
             } else if (type === 'solutions') {
                 html += `
                     <div class="tool-card">
                         <h3>💡 ${t.solutionsTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.solutionsSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.solutionsSub}</p>
                         <input type="text" id="solCodeInput" placeholder="${t.solutionsPlaceholder}">
                         <button class="action-btn" onclick="executeSolutionSearch()">${t.solutionsSearchBtn}</button>
-                        <div id="solResultBox" style="margin-top:10px;"></div>
+                        <div id="solResultBox" style="margin-top:12px;"></div>
                     </div>
                 `;
             } else if (type === 'matrix') {
                 html += `
                     <div class="tool-card">
                         <h3>🔗 ${t.matrixTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.matrixSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.matrixSub}</p>
                         <input type="text" id="matrixInput" placeholder="${t.matrixPlaceholder}">
                         <button class="action-btn" onclick="executeMatrixAnalysis()">${t.matrixSearchBtn}</button>
-                        <div id="matrixResultBox" style="margin-top:10px;"></div>
+                        <div id="matrixResultBox" style="margin-top:12px;"></div>
                     </div>
                 `;
             } else if (type === 'hex') {
                 html += `
                     <div class="tool-card">
                         <h3>📂 ${t.hexTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.hexSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.hexSub}</p>
                         <button class="action-btn" onclick="alert('${t.checksumVerifiedMsg}')">${t.hexSimBtn}</button>
                     </div>
                 `;
@@ -1359,7 +1380,7 @@
                 html += `
                     <div class="tool-card">
                         <h3>📜 ${t.historyTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.historySub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.historySub}</p>
                         <input type="text" placeholder="${t.historyPlaceholder}">
                         <button class="action-btn" onclick="alert('${t.vinFoundMsg}')">${t.historySearchBtn}</button>
                     </div>
@@ -1368,7 +1389,7 @@
                 html += `
                     <div class="tool-card">
                         <h3>🖨️ ${t.printTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.printSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.printSub}</p>
                         <input type="text" placeholder="${t.printPlaceholder}">
                         <button class="action-btn" onclick="window.print()">${t.printBtn}</button>
                     </div>
@@ -1377,7 +1398,7 @@
                 html += `
                     <div class="tool-card">
                         <h3>🔑 ${t.immoTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.immoSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.immoSub}</p>
                         <label>${t.pinLabel}</label><input type="text" placeholder="1234" maxlength="4">
                         <label>${t.vinLabel}</label><input type="text" placeholder="17 Chars">
                         <button class="action-btn" onclick="alert('${t.immoSuccess}')">${t.progKeyBtn}</button>
@@ -1387,11 +1408,11 @@
                 html += `
                     <div class="tool-card">
                         <h3>📈 ${t.scopeTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.scopeSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.scopeSub}</p>
                         <label>${t.sensorSelect}</label>
                         <select><option>${t.optSensor1}</option><option>${t.optSensor2}</option><option>${t.optSensor3}</option></select>
                         <button class="action-btn" onclick="startOscilloscope()">${t.startScopeBtn}</button>
-                        <div id="scopeDisplay" style="background:#111; color:#00ffcc; padding:10px; border-radius:6px; margin-top:8px; font-family:monospace; font-size:10px; text-align:left; display:none;">
+                        <div id="scopeDisplay" style="background:#111; color:#00ffcc; padding:12px; border-radius:8px; margin-top:10px; font-family:monospace; font-size:14px; text-align:left; display:none;">
                             [LIVE WAVE]: ~~~/\_/\~~~ (Signal Active & Stable)
                         </div>
                     </div>
@@ -1400,11 +1421,11 @@
                 html += `
                     <div class="tool-card">
                         <h3>🧮 ${t.calcTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.calcSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.calcSub}</p>
                         <label>${t.rpmInputLabel}</label><input type="number" id="calcRpm" value="3000">
                         <label>${t.pwInputLabel}</label><input type="number" id="calcPw" value="4.5">
                         <button class="action-btn" onclick="runCalc()">${t.calcBtn}</button>
-                        <div id="calcResultBox" style="margin-top:8px; font-weight:bold; font-size:11px; color:var(--accent-color);"></div>
+                        <div id="calcResultBox" style="margin-top:10px; font-weight:bold; font-size:15px; color:var(--accent-color);"></div>
                     </div>
                 `;
             } else if (type === 'pinout') {
@@ -1417,10 +1438,10 @@
                 html += `
                     <div class="tool-card">
                         <h3>🔌 ${t.pinoutTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.pinoutSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.pinoutSub}</p>
                         <label>${t.ecuTypeLabel}</label>
                         <select><option>Bosch EDC17C60</option><option>Delphi DCM6.2</option><option>Continental SID901</option></select>
-                        <table class="result-table" style="margin-top:8px;">
+                        <table class="result-table" style="margin-top:10px;">
                             <tr><th>${t.pinNumHeader}</th><th>${t.pinSignalHeader}</th><th>${t.pinColorHeader}</th></tr>
                             <tr><td>${pinNumText} 14</td><td>${pinSignal1}</td><td>${pinCol1}</td></tr>
                             <tr><td>${pinNumText} 28</td><td>${pinSignal2}</td><td>${pinCol2}</td></tr>
@@ -1431,7 +1452,7 @@
                 html += `
                     <div class="tool-card">
                         <h3>⚙️ ${t.checksumTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.checksumSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.checksumSub}</p>
                         <button class="action-btn" onclick="alert('${t.checksumVerifiedMsg}')">${t.runChecksumBtn}</button>
                     </div>
                 `;
@@ -1439,11 +1460,11 @@
                 html += `
                     <div class="tool-card">
                         <h3>🧪 ${t.actuatorTitle}</h3>
-                        <p style="font-size:11px; color:#aaa;">${t.actuatorSub}</p>
+                        <p style="font-size:14px; color:#aaa;">${t.actuatorSub}</p>
                         <button class="action-btn" onclick="alert('${t.testOkMsg}')">${t.testPumpBtn}</button>
-                        <button class="action-btn" style="background:#028090; margin-top:5px;" onclick="alert('${t.testOkMsg}')">${t.testFansBtn}</button>
-                        <button class="action-btn" style="background:#05668d; margin-top:5px;" onclick="alert('${t.testOkMsg}')">${t.testInjectorsBtn}</button>
-                        <button class="action-btn" style="background:#457b9d; margin-top:5px;" onclick="alert('${t.testOkMsg}')">${t.testThrottleBtn}</button>
+                        <button class="action-btn" style="background:#028090; margin-top:6px;" onclick="alert('${t.testOkMsg}')">${t.testFansBtn}</button>
+                        <button class="action-btn" style="background:#05668d; margin-top:6px;" onclick="alert('${t.testOkMsg}')">${t.testInjectorsBtn}</button>
+                        <button class="action-btn" style="background:#457b9d; margin-top:6px;" onclick="alert('${t.testOkMsg}')">${t.testThrottleBtn}</button>
                     </div>
                 `;
             } else if (type === 'official_report') {
@@ -1451,23 +1472,23 @@
                     <div class="tool-card">
                         <h3>🖨️ ${t.officialReportTitle}</h3>
                         <label>${t.workshopNameLabel}</label><input type="text" id="repWorkshopName" value="${t.workshopNameVal}">
-                        <div style="display:flex; gap:6px;">
+                        <div style="display:flex; gap:8px;">
                             <div style="flex:1;"><label>${t.techNameLabel}</label><input type="text" id="repTechName" placeholder="${t.techNamePh}"></div>
                             <div style="flex:1;"><label>${t.clientNameLabel}</label><input type="text" id="repClientName" placeholder="${t.clientNamePh}"></div>
                         </div>
-                        <div style="display:flex; gap:6px;">
+                        <div style="display:flex; gap:8px;">
                             <div style="flex:1;"><label>${t.carDetailsLabel}</label><input type="text" id="repCarModel" placeholder="${t.carDetailsPh}"></div>
                             <div style="flex:1;"><label>${t.vinNumLabel}</label><input type="text" id="repVin" placeholder="${t.vinNumPh}" style="text-transform:uppercase;"></div>
                         </div>
-                        <label>${t.faultSummaryLabel}</label><input type="text" id="repNotes" placeholder="${t.faultSummaryPh}" style="padding:10px;">
-                        <button class="action-btn export-btn" onclick="generateOfficialWorkshopReport()">${t.printOfficialBtn}</button>
+                        <label>${t.faultSummaryLabel}</label><input type="text" id="repNotes" placeholder="${t.faultSummaryPh}" style="padding:12px;">
+                        <button class="action-btn export-btn" onclick="generateOfficialWorkshopReport()">${t.printOfficialBtn || t.printOfficialFile}</button>
                     </div>
                 `;
             } else if (type === 'bin-comparator') {
                 html += `
                     <div class="tool-card">
                         <h3>${t["bin-comparator"]}</h3>
-                        <div style="margin-bottom:8px;">
+                        <div style="margin-bottom:10px;">
                             <label>${t.file1Label}</label>
                             <input type="file" id="binFile1" style="display:none;" onchange="updateFileName('binFile1', 'fileNameLbl1')">
                             <div class="custom-file-input">
@@ -1475,7 +1496,7 @@
                                 <span class="custom-file-label" id="fileNameLbl1">${t.noFileSelected}</span>
                             </div>
                         </div>
-                        <div style="margin-bottom:10px;">
+                        <div style="margin-bottom:12px;">
                             <label>${t.file2Label}</label>
                             <input type="file" id="binFile2" style="display:none;" onchange="updateFileName('binFile2', 'fileNameLbl2')">
                             <div class="custom-file-input">
@@ -1484,9 +1505,9 @@
                             </div>
                         </div>
                         <button class="action-btn" onclick="compareBinFiles()">${t.compareBtn}</button>
-                        <div id="bin-cmp-result" style="margin-top:10px; display:none;">
+                        <div id="bin-cmp-result" style="margin-top:12px; display:none;">
                             <h4>${t.cmpResultHeader}</h4>
-                            <pre id="bin-diff-output" style="background:#111; color:#00ffcc; padding:8px; border-radius:6px; max-height:150px; overflow-y:auto; direction:ltr; text-align:left; font-size:10px;"></pre>
+                            <pre id="bin-diff-output" style="background:#111; color:#00ffcc; padding:10px; border-radius:8px; max-height:170px; overflow-y:auto; direction:ltr; text-align:left; font-size:13px;"></pre>
                         </div>
                     </div>
                 `;
@@ -1500,7 +1521,7 @@
 
         function runAIPrediction() {
             const box = document.getElementById('aiResultBox');
-            box.innerHTML = `<div style="background:var(--bg-color); border:1px solid #9d4edd; padding:8px; border-radius:6px; font-size:11px;">${translations[currentLang].aiResult}</div>`;
+            box.innerHTML = `<div style="background:var(--bg-color); border:1px solid #9d4edd; padding:10px; border-radius:8px; font-size:14px;">${translations[currentLang].aiResult}</div>`;
             playBeepSound();
         }
 
@@ -1510,19 +1531,19 @@
             const box = document.getElementById('crowdResultBox');
             const t = translations[currentLang];
             if(!code || !sol) { alert(t.fillFieldsMsg); return; }
-            box.innerHTML = `<div style="background:var(--bg-color); border:1px solid #00b4d8; padding:8px; border-radius:6px; font-size:11px;">${t.crowdSuccess}</div>`;
+            box.innerHTML = `<div style="background:var(--bg-color); border:1px solid #00b4d8; padding:10px; border-radius:8px; font-size:14px;">${t.crowdSuccess}</div>`;
             playBeepSound();
         }
 
         function runAutoMapFixer() {
             const box = document.getElementById('autoFixResultBox');
-            box.innerHTML = `<div style="background:var(--bg-color); border:1px solid #70e000; padding:8px; border-radius:6px; font-size:11px;">${translations[currentLang].autoFixSuccess}</div>`;
+            box.innerHTML = `<div style="background:var(--bg-color); border:1px solid #70e000; padding:10px; border-radius:8px; font-size:14px;">${translations[currentLang].autoFixSuccess}</div>`;
             playBeepSound();
         }
 
         function generateQRReport() {
             const box = document.getElementById('qrCodeBox');
-            box.innerHTML = `<div style="background:#fff; color:#000; padding:10px; border-radius:8px; display:inline-block; font-size:11px;"><strong>[ QR CODE DATA ]</strong><br><span style="font-size:9px;">https://smart-ecu-platform.io/report/VIN123456</span><br>${translations[currentLang].qrData}</div>`;
+            box.innerHTML = `<div style="background:#fff; color:#000; padding:12px; border-radius:10px; display:inline-block; font-size:14px;"><strong>[ QR CODE DATA ]</strong><br><span style="font-size:12px;">https://smart-ecu-platform.io/report/VIN123456</span><br>${translations[currentLang].qrData}</div>`;
             playBeepSound();
         }
 
@@ -1531,7 +1552,7 @@
             const system = document.getElementById('ecuSystemSelect').value;
             const box = document.getElementById('brandResultBox');
             let msg = `✔️ Connection OK: ${brand} (${system}).`;
-            box.innerHTML = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:8px; border-radius:6px; font-size:11px;">${msg}</div>`;
+            box.innerHTML = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:10px; border-radius:8px; font-size:14px;">${msg}</div>`;
             playBeepSound();
         }
 
@@ -1541,7 +1562,7 @@
             if (!input || !resBox) return;
             const val = input.value.trim();
             if (!val) { alert(translations[currentLang].msgEnterCode); return; }
-            resBox.innerHTML = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:8px; border-radius:6px; font-size:11px;"><strong>✔️ Solution [${val.toUpperCase()}]:</strong><br>1. Inspect Wiring Harness.<br>2. Clear DTC & Test.</div>`;
+            resBox.innerHTML = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:10px; border-radius:8px; font-size:14px;"><strong>✔️ Solution [${val.toUpperCase()}]:</strong><br>1. Inspect Wiring Harness.<br>2. Clear DTC & Test.</div>`;
         }
 
         function executeMatrixAnalysis() {
@@ -1550,7 +1571,7 @@
             if (!input || !resBox) return;
             const val = input.value.trim();
             if (!val) { alert(translations[currentLang].msgEnterCode); return; }
-            resBox.innerHTML = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:8px; border-radius:6px; font-size:11px;"><strong>✔️ Root Cause [${val}]:</strong><br>Fuel pressure fluctuation or intake air leak.</div>`;
+            resBox.innerHTML = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:10px; border-radius:8px; font-size:14px;"><strong>✔️ Root Cause [${val}]:</strong><br>Fuel pressure fluctuation or intake air leak.</div>`;
         }
 
         function addNewCodeToDictionary() {
@@ -1573,13 +1594,13 @@
             let html = "<ul style='list-style:none; padding:0; margin:0;'>";
             
             for (let code in baseDescriptions[currentLangKey]) {
-                html += `<li style="padding:4px 0; border-bottom:1px solid var(--table-border);"><strong>${code}:</strong> ${baseDescriptions[currentLangKey][code]}</li>`;
+                html += `<li style="padding:6px 0; border-bottom:1px solid var(--table-border);"><strong>${code}:</strong> ${baseDescriptions[currentLangKey][code]}</li>`;
             }
             let customDb = getCustomDictionary();
             for (let code in customDb) {
                 let desc = customDb[code][currentLangKey] || customDb[code]['ar'];
                 let badgeText = currentLangKey === 'ar' ? 'مُكتشف' : (currentLangKey === 'fr' ? 'Appris' : 'Learned');
-                html += `<li style="padding:4px 0; border-bottom:1px solid var(--table-border);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
+                html += `<li style="padding:6px 0; border-bottom:1px solid var(--table-border);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
             }
             html += "</ul>";
             listDiv.innerHTML = html;
@@ -1676,7 +1697,7 @@
             let isRtl = currentLang === 'ar';
             let textAlign = isRtl ? 'right' : 'left';
 
-            let html = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:8px; border-radius:6px; font-size:11px; text-align:${textAlign};">`;
+            let html = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:10px; border-radius:8px; font-size:14px; text-align:${textAlign};">`;
             html += `<strong>${t.quickScanHeader}</strong><br><br>`;
 
             sampleCodes.forEach(code => {
@@ -1709,8 +1730,8 @@
             let badgeTag = currentLang === 'ar' ? 'فلترة القلب النابض' : (currentLang === 'fr' ? 'Filtre Cœur' : 'Core Filtered');
 
             let html = `
-                <div style="background:var(--bg-color); border:2px solid ${statusBadgeColor}; padding:10px; border-radius:6px; margin-bottom:10px; text-align:${textAlign};">
-                    <strong style="color:${statusBadgeColor}; font-size:13px;">${statusTitleText}</strong><br><br>
+                <div style="background:var(--bg-color); border:2px solid ${statusBadgeColor}; padding:12px; border-radius:8px; margin-bottom:12px; text-align:${textAlign}; font-size:15px;">
+                    <strong style="color:${statusBadgeColor}; font-size:16px;">${statusTitleText}</strong><br><br>
                     - ${res.reason}<br>
                     - Value: ${data.inputValue} (Time: ${res.time} ms)
                 </div>
@@ -1730,7 +1751,7 @@
         function exportDiagnosticReport() {
             if (!lastData) { alert(translations[currentLang].msgEnterCode); return; }
             const desc = getDtcDescription(lastData.code, currentLang);
-            let reportContent = `--- SMART ECU DIAGNOSTIC PLATFORM V2 REPORT ---\nCode: ${lastData.code}\nDescription: ${desc}\nDate: ${new Date().toLocaleString()}`;
+            let reportContent = `--- SMART ECU DIAGNOSTIC PLATFORM REPORT ---\nCode: ${lastData.code}\nDescription: ${desc}\nDate: ${new Date().toLocaleString()}`;
             let blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
             let link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
