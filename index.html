@@ -4,18 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="pageTitle">منصة التشخيص الذكية لوحدات التحكم (Smart ECU Diagnostic Platform)</title>
-    <!-- ربط تقنية PWA Manifest افتراضياً -->
     <link rel="manifest" id="dynamicManifest" href="">
     <meta name="theme-color" content="#00adb5">
     <style>
-        /* ضبط عام لتجاوب الصور والعناصر مع كافة الشاشات (هاتف، تابلت، كمبيوتر) */
         img, video, canvas, svg {
             max-width: 100%;
             height: auto;
             display: block;
         }
 
-        /* حاوية التقرير والتشخيص لتتطابق تلقائياً مع حجم الشاشة والطباعة */
         .print-container, .container {
             width: 100%;
             max-width: 1200px;
@@ -24,7 +21,6 @@
             box-sizing: border-box;
         }
 
-        /* التجاوب مع الهواتف الذكية والأجهزة الصغيرة */
         @media screen and (max-width: 768px) {
             body {
                 font-size: 16px;
@@ -265,6 +261,7 @@
         .result-table th { background: var(--table-th-bg); color: var(--accent-color); width: 38%; }
         .result-table td { color: var(--text-color); }
         .badge-new { background: #00ff66; color: #000; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 4px; margin-right: 4px; }
+        .log-entry { padding: 8px; border-bottom: 1px solid var(--table-border); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -401,7 +398,6 @@
         <div id="sectionContent" style="display: none;"></div>
     </div>
 
-    <!-- نموذج جمع الآراء والملاحظات المترجم بالكامل -->
     <div id="feedbackWidgetContainer">
         <button id="openFeedbackBtn" style="position: fixed; bottom: 12px; left: 12px; z-index: 9999; background: #2563eb; color: #fff; border: none; padding: 9px 14px; border-radius: 30px; cursor: pointer; font-family: Tahoma; font-size: 13px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.4);">
             💬 تقييم المنصة والملاحظات
@@ -436,6 +432,105 @@
     </div>
 
     <script>
+        // نظام التخزين المزدوج لضمان حفظ الأكواد والسجلات بشكل دائم حتى لو تم حظر localStorage
+        const STORAGE_KEY_CODES = 'ecu_custom_learned_codes_v2';
+        const STORAGE_KEY_LOGS  = 'ecu_daily_session_logs_v2';
+        let memoryFallbackCodes = {};
+        let memoryFallbackLogs  = [];
+
+        function safeGetStorage(key, defaultVal) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) return JSON.parse(raw);
+            } catch (e) {
+                console.warn("Storage fallback active for", key);
+            }
+            return defaultVal;
+        }
+
+        function safeSetStorage(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+                return true;
+            } catch (e) {
+                console.warn("Could not write to localStorage, using session memory:", e);
+                return false;
+            }
+        }
+
+        function getCustomDictionary() {
+            const stored = safeGetStorage(STORAGE_KEY_CODES, null);
+            if (stored && typeof stored === 'object') {
+                memoryFallbackCodes = stored;
+                return stored;
+            }
+            return memoryFallbackCodes;
+        }
+
+        function saveCustomCode(code, descAr, descFr, descEn) {
+            code = code.toUpperCase().trim();
+            let customDb = getCustomDictionary();
+            customDb[code] = {
+                ar: descAr,
+                fr: descFr || descAr,
+                en: descEn || descAr,
+                timestamp: new Date().toLocaleString()
+            };
+            memoryFallbackCodes = customDb;
+            safeSetStorage(STORAGE_KEY_CODES, customDb);
+            appendSessionLog(code, descAr, "إضافة للقاموس / Added to Dictionary");
+        }
+
+        function getSessionLogs() {
+            const stored = safeGetStorage(STORAGE_KEY_LOGS, null);
+            if (Array.isArray(stored)) {
+                memoryFallbackLogs = stored;
+                return stored;
+            }
+            return memoryFallbackLogs;
+        }
+
+        function appendSessionLog(code, description, actionType) {
+            let logs = getSessionLogs();
+            logs.unshift({
+                code: code,
+                description: description,
+                action: actionType,
+                time: new Date().toLocaleString()
+            });
+            if (logs.length > 100) logs.pop();
+            memoryFallbackLogs = logs;
+            safeSetStorage(STORAGE_KEY_LOGS, logs);
+        }
+
+        function clearAllSavedLogs() {
+            memoryFallbackLogs = [];
+            safeSetStorage(STORAGE_KEY_LOGS, []);
+            renderSessionLogsList();
+        }
+
+        function renderSessionLogsList() {
+            const container = document.getElementById('dailyLogsContainer');
+            if (!container) return;
+            const logs = getSessionLogs();
+            if (logs.length === 0) {
+                container.innerHTML = `<p style="color:#888; text-align:center; padding:10px;">${currentLang === 'ar' ? 'لا توجد سجلات محفوظة حالياً.' : (currentLang === 'fr' ? 'Aucun journal enregistré.' : 'No saved logs yet.')}</p>`;
+                return;
+            }
+            let html = '';
+            logs.forEach(item => {
+                html += `
+                    <div class="log-entry">
+                        <div>
+                            <strong style="color:var(--accent-color);">${item.code}</strong>: ${item.description}
+                            <div style="font-size:11px; color:#888; margin-top:2px;">${item.action} • ${item.time}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
         function accessAdminPanel() {
             const adminPass = "2026";
             const t = translations[currentLang] || translations['ar'];
@@ -556,6 +651,7 @@
 
         const baseDescriptions = {
             ar: {
+                "P0000": "لا توجد أعطال مسجلة / النظام سليم (الحالة الافتراضية)",
                 "P0335": "عطل في دائرة حساس عمود الكرنك (Crankshaft Position Sensor)",
                 "P0300": "اشتعال عشوائي متعدد للاسطوانات",
                 "P0301": "اشتعال عشوائي في الاسطوانة رقم 1",
@@ -563,15 +659,20 @@
                 "P0420": "كفاءة نظام المحفز أقل من الحد الأدنى (البنك 1)",
                 "P0171": "النظام فقير جداً في الوقود (البنك 1)",
                 "P0172": "النظام غني جداً في الوقود (البنك 1)",
+                "P0102": "دخل منخفض في دائرة حساس تدفق الهواء (MAF)",
+                "P0113": "دخل مرتفع في دائرة حساس حرارة الهواء (IAT)",
+                "P0135": "عطل في دائرة تسخين حساس الأكسجين",
                 "P0200": "خلل في دائرة حاقن الوقود",
                 "P0500": "عطل في حساس سرعة السيارة",
                 "C0035": "دائرة حساس سرعة العجلة الأمامية اليسرى",
                 "C0040": "دائرة حساس سرعة العجلة الأمامية اليمنى",
-                "B1001": "خطأ في تكوين الخيارات والوحدة الإضافية",
+                "C1201": "عطل في دائرة حساس سرعة العجلات / نظام ABS",
+                "B1001": "خطأ في تكوين الخيارات والوحدة الإضافية / الوسائد",
                 "U0100": "انقطاع الاتصال مع وحدة التحكم الرئيسية ECM/PCM",
                 "U0121": "انقطاع الاتصال مع وحدة التحكم بنظام مانع الانغلاق ABS"
             },
             fr: {
+                "P0000": "Aucun défaut / Système OK (État par défaut)",
                 "P0335": "Dysfonctionnement du capteur de vilebrequin",
                 "P0300": "Ratés d'allumage aléatoires/multiples détectés",
                 "P0301": "Raté d'allumage détecté sur le cylindre 1",
@@ -579,15 +680,20 @@
                 "P0420": "Efficacité du système de catalyseur inférieure au seuil",
                 "P0171": "Système trop pauvre - Banc 1",
                 "P0172": "Système trop riche - Banc 1",
+                "P0102": "Signal bas du débitmètre d'air massique (MAF)",
+                "P0113": "Signal haut de la sonde de température d'air (IAT)",
+                "P0135": "Panne du circuit de chauffage de la sonde O2",
                 "P0200": "Dysfonctionnement du circuit d'injecteur",
                 "P0500": "Capteur de vitesse du véhicule défectueux",
                 "C0035": "Circuit du capteur de vitesse de roue avant gauche",
                 "C0040": "Circuit du capteur de vitesse de roue avant droite",
+                "C1201": "Dysfonctionnement du système ABS / VSC",
                 "B1001": "Erreur de configuration des options de l'unité",
                 "U0100": "Communication perdue avec ECM/PCM",
                 "U0121": "Communication perdue avec le module ABS"
             },
             en: {
+                "P0000": "No Fault / System OK (Default State)",
                 "P0335": "Crankshaft Position Sensor A Circuit Malfunction",
                 "P0300": "Random/Multiple Cylinder Misfire Detected",
                 "P0301": "Cylinder 1 Misfire Detected",
@@ -595,33 +701,19 @@
                 "P0420": "Catalyst System Efficiency Below Threshold (Bank 1)",
                 "P0171": "System Too Lean - Bank 1",
                 "P0172": "System Too Rich - Bank 1",
+                "P0102": "Mass Air Flow (MAF) Circuit Low Input",
+                "P0113": "Intake Air Temperature Sensor Circuit High",
+                "P0135": "O2 Sensor Heater Circuit Malfunction",
                 "P0200": "Injector Circuit Malfunction",
                 "P0500": "Vehicle Speed Sensor Malfunction",
                 "C0035": "Left Front Wheel Speed Sensor Circuit",
                 "C0040": "Right Front Wheel Speed Sensor Circuit",
+                "C1201": "ABS / Wheel Speed Sensor System Malfunction",
                 "B1001": "Option Configuration Error",
                 "U0100": "Lost Communication with ECM/PCM",
                 "U0121": "Lost Communication with ABS Control Module"
             }
         };
-
-        function getCustomDictionary() {
-            try {
-                return JSON.parse(localStorage.getItem('ecu_custom_learned_codes')) || {};
-            } catch(e) {
-                return {};
-            }
-        }
-
-        function saveCustomCode(code, descAr, descFr, descEn) {
-            let customDb = getCustomDictionary();
-            customDb[code] = {
-                ar: descAr,
-                fr: descFr || descAr,
-                en: descEn || descAr
-            };
-            localStorage.setItem('ecu_custom_learned_codes', JSON.stringify(customDb));
-        }
 
         function generateAutoDescription(code, lang) {
             let prefix = code.charAt(0).toUpperCase();
@@ -643,7 +735,7 @@
                 typeEn = "Network Fault";
             }
 
-            let descAr = `${typeAr} (تم اكتشافه تلقائياً للكود ${code})`;
+            let descAr = `${typeAr} (تم توليده تلقائياً للكود ${code})`;
             let descFr = `${typeFr} (Auto-détecté DTC ${code})`;
             let descEn = `${typeEn} (Auto-learned DTC ${code})`;
 
@@ -744,7 +836,7 @@
                 sevHigh: "عالي (High)", sevMedium: "متوسط (Medium)", sevCritical: "حرج (Critical)", sevLow: "منخفض (Low)",
                 dtcConfirmedTitle: "🚨 [عطل حقيقي مؤكد بنسبة 100%]", dtcFilteredTitle: "🛡️ [تم حجب التشويش العابر بنجاح]",
 
-                lightingTitle: "إدارة الإضاءة الذكية والسجل اليومي والليلي", lightingMode: "وضع الإضاءة المفضل:", modeNight: "الوضع الليلي (Night Mode)", modeDay: "الوضع النهاري (Day Mode)", saveLogBtn: "حفظ جلسة الفحص الحالية في السجل", clearLogsBtn: "🗑️ مسح جميع السجلات المحفوظة",
+                lightingTitle: "إدارة الإضاءة الذكية والسجل اليومي والليلي", lightingMode: "وضع الإضاءة المفضل:", modeNight: "الوضع الليلي (Night Mode)", modeDay: "الوضع النهاري (Day Mode)", saveLogBtn: "حفظ جلسة الفحص الحالية في السجل", clearLogsBtn: "🗑️ مسح جميع السجلات المحفوظة", logsHistoryHeader: "📋 سجل العمليات والأكواد المحفوظة:",
                 msgAddedLog: "تم حفظ الجلسة في السجل بنجاح!", msgClearedLogs: "تم مسح كافة السجلات الحالية.",
 
                 ecuTitle: "برمجة وتعديل وحدات التحكم (ECU Tuning & Mapping)", ecuSelect: "اختر نوع ملف الخريطة البرمجية (ECU Map File):", mapOption1: "Bosch EDC17 / MED17 (Diesel & Gasoline)", mapOption2: "Siemens / Continental SIMOS", mapOption3: "Delphi DCM / MT80", ecuActionBtn: "تحليل ومعايرة خريطة وحدة التحكم", ecuSuccess: "تمت معايرة الخريطة وتحسين التدفق البرمجي بنجاح!",
@@ -753,7 +845,7 @@
 
                 adminTitle: "لوحة التحكم والمراقبة الخاصة بالمسؤول (Admin Panel)", adminPassLabel: "كلمة مرور المسؤول الأمنية:", adminBtn: "الدخول للوحة التحكم الآمنة", adminSuccess: "🔓 تم تسجيل الدخول بنجاح!",
 
-                tableTitle: "جدول فحص وتشخيص أعطال السيارات الشامل والتفاعلي", tableSub: "يمكنك إضافة أي كود جديد وسيتم حفظه تلقائياً في قاموس المنصة:", newCodeLabel: "أدخل كود العطل:", newDescLabel: "وصف العطل وترجمته:", placeholderDesc: "أدخل وصف العطل...", addCodeBtn: "⚡ جلب القراءة الذكية وإضافة الكود للجدول", dictionaryHeader: "الأكواد المسجلة في القاموس:",
+                tableTitle: "جدول فحص وتشخيص أعطال السيارات الشامل والتفاعلي", tableSub: "أدخل الكود فقط (وسيقوم النظام بجلب وترجمة الوصف آلياً وحفظه في السجل):", newCodeLabel: "أدخل كود العطل (إلزامي):", newDescLabel: "وصف العطل وترجمته (اختياري - يملأ آلياً):", placeholderDesc: "اتركه فارغاً للتوليد والترجمة التلقائية...", addCodeBtn: "⚡ جلب القراءة الذكية وإضافة الكود للجدول", dictionaryHeader: "الأكواد المسجلة في القاموس (تظهر الإضافات الجديدة في الأعلى):",
 
                 solutionsTitle: "مكتبة الحلول الذكية والإصلاح", solutionsSub: "ابحث عن كود العطل لعرض خطوات الإصلاح الفورية:", solutionsPlaceholder: "أدخل الكود (مثال: P0300 أو P0420)...", solutionsSearchBtn: "بحث عن الحل",
 
@@ -781,7 +873,7 @@
 
                 "bin-comparator": "مقارنة الملفات الثنائية (Hex Diff)", file1Label: "ملف الخريطة الأصلي:", file2Label: "ملف الخريطة المعدل:", chooseFileBtn: "اختر ملفاً", noFileSelected: "لم يتم اختيار أي ملف", compareBtn: "مقارنة الملفات", cmpResultHeader: "نتائج الفروقات:",
 
-                msgEnterCode: "الرجاء إدخال كود العطل والقيمة الكهربائية أولاً!", fillFieldsMsg: "الرجاء ملء جميع الحقول المطلوبة!"
+                msgEnterCode: "الرجاء إدخال كود العطل أولاً!", fillFieldsMsg: "الرجاء ملء الحقل المطلوب!"
             },
             fr: {
                 title: "Plateforme Intelligente de Diagnostic ECU",
@@ -829,15 +921,15 @@
                 liveDataHeader: "📡 Flux de Données Moteur en Direct:", rpmLabel: "Régime Moteur (RPM):", tempLabel: "Température LDR:", speedLabel: "Vitesse Véhicule:",
                 status: "Statut", code: "Code Défaut", desc: "Description et Traduction", severity: "Sévérité", source: "Source", power: "Puissance du Signal",
                 valStatusActive: "Actif et Prêt", valSourceECM: "Unité ECM Principale", valPowerOptimal: "99.8% (Optimal)",
-                sevHigh: "Élevé (High)", sevMedium: "Moyen (Medium)", sevCritical: "Critique (Critique)", sevLow: "Faible (Low)",
+                sevHigh: "Élevé (High)", sevMedium: "Moyen (Medium)", sevCritical: "Critique (Critique)", sevLow: "Faible (Faible)",
                 dtcConfirmedTitle: "🚨 [Code Défaut Confirmé à 100%]", dtcFilteredTitle: "🛡️ [Signal Parasite Filtré avec Succès]",
 
-                lightingTitle: "Gestion de l'Éclairage et Journal", lightingMode: "Mode d'éclairage:", modeNight: "Mode Nuit", modeDay: "Mode Jour", saveLogBtn: "Enregistrer la session", clearLogsBtn: "🗑️ Effacer les journaux",
+                lightingTitle: "Gestion de l'Éclairage et Journal", lightingMode: "Mode d'éclairage:", modeNight: "Mode Nuit", modeDay: "Mode Jour", saveLogBtn: "Enregistrer la session", clearLogsBtn: "🗑️ Effacer les journaux", logsHistoryHeader: "📋 Historique des Journaux Enregistrés:",
                 msgAddedLog: "Session enregistrée avec succès !", msgClearedLogs: "Tous les journaux ont été effacés.",
                 ecuTitle: "Programmation et Cartographie ECU", ecuSelect: "Sélectionner le fichier de carte ECU:", mapOption1: "Bosch EDC17 / MED17", mapOption2: "Siemens / Continental SIMOS", mapOption3: "Delphi DCM / MT80", ecuActionBtn: "Analyser et Calibrer la Carte", ecuSuccess: "Cartographie calibrée et optimisée avec succès!",
                 statsTitle: "Statistiques des Abonnés", statLabel1: "Abonnés Actifs", statLabel2: "Diagnostics Réussis Aujourd'hui", statLabel3: "Précision du Diagnostic", statLabel4: "Boîtiers Connectés",
                 adminTitle: "Panneau de Contrôle Administrateur", adminPassLabel: "Mot de passe Admin:", adminBtn: "Accès Sécurisé", adminSuccess: "🔓 Connexion réussie!",
-                tableTitle: "Tableau Global et Interactif des Défauts DTC", tableSub: "Ajoutez tout nouveau code et il sera enregistré dans le dictionnaire:", newCodeLabel: "Nouveau Code Défaut:", newDescLabel: "Description du Défaut:", placeholderDesc: "Entrer la description...", addCodeBtn: "⚡ Enregistrer et Ajouter au Tableau", dictionaryHeader: "Codes Enregistrés dans le Dictionnaire:",
+                tableTitle: "Tableau Global et Interactif des Défauts DTC", tableSub: "Entrez uniquement le code (l'application traduira et enregistrera automatiquement):", newCodeLabel: "Nouveau Code Défaut:", newDescLabel: "Description du Défaut (Optionnel):", placeholderDesc: "Laisser vide pour génération automatique...", addCodeBtn: "⚡ Enregistrer et Ajouter au Tableau", dictionaryHeader: "Codes Enregistrés dans le Dictionnaire:",
                 solutionsTitle: "Bibliothèque de Solutions Intelligentes", solutionsSub: "Recherchez un code défaut pour afficher les étapes de réparation :", solutionsPlaceholder: "Entrez le code (ex: P0300)...", solutionsSearchBtn: "Rechercher la Solution",
                 matrixTitle: "Matrice de Corrélation des Défauts", matrixSub: "Entrez les codes défauts séparés par une virgule (ex: P0300, P0171) :", matrixPlaceholder: "P0300, P0171...", matrixSearchBtn: "Analyser la Corrélation",
                 hexTitle: "Visualiseur de Cartes Hex", hexSub: "Télécharger et simuler la lecture d'un fichier Bin:", hexSimBtn: "Simuler l'analyse Checksum", checksumVerifiedMsg: "✔️ Somme de contrôle Checksum vérifiée avec succès!",
@@ -851,7 +943,7 @@
                 actuatorTitle: "Tests des Actionneurs", actuatorSub: "Tester et activer les composants:", testPumpBtn: "⛽ Test Pompe à Carburant", testFansBtn: "🌀 Test Ventilateurs", testInjectorsBtn: "💉 Test Injecteurs", testThrottleBtn: "🔄 Test Papillon", testOkMsg: "✔️ Test réussi, le composant fonctionne correctement.",
                 officialReportTitle: "Rapports d'Atelier Officiels", workshopNameLabel: "Nom de l'Atelier:", workshopNameVal: "Centre de Diagnostic Pro", techNameLabel: "Technicien:", techNamePh: "Nom du technicien", clientNameLabel: "Client:", clientNamePh: "Nom du client", carDetailsLabel: "Véhicule:", carDetailsPh: "Ex: Golf 7", vinNumLabel: "VIN:", vinNumPh: "17 caractères", faultSummaryLabel: "Résumé des Défauts:", faultSummaryPh: "Notes...", printOfficialBtn: "📄 Imprimer le Rapport Officiel",
                 "bin-comparator": "Comparateur de Fichiers (Hex Diff)", file1Label: "Fichier Original:", file2Label: "Fichier Modifié:", chooseFileBtn: "Choisir un fichier", noFileSelected: "Aucun fichier choisi", compareBtn: "Comparer", cmpResultHeader: "Résultats:",
-                msgEnterCode: "Veuillez entrer un code défaut et une valeur !", fillFieldsMsg: "Veuillez remplir tous les champs obligatoires !"
+                msgEnterCode: "Veuillez entrer un code défaut !", fillFieldsMsg: "Veuillez remplir le champ obligatoire !"
             },
             en: {
                 title: "Smart ECU Diagnostic Platform",
@@ -902,12 +994,12 @@
                 sevHigh: "High", sevMedium: "Medium", sevCritical: "Critical", sevLow: "Low",
                 dtcConfirmedTitle: "🚨 [100% Confirmed Fault Code]", dtcFilteredTitle: "🛡️ [Transient Noise Successfully Filtered]",
 
-                lightingTitle: "Lighting & Daily Log", lightingMode: "Preferred Theme:", modeNight: "Night Mode", modeDay: "Mode Day", saveLogBtn: "Save Current Session", clearLogsBtn: "🗑️ Clear All Logs",
+                lightingTitle: "Lighting & Daily Log", lightingMode: "Preferred Theme:", modeNight: "Night Mode", modeDay: "Mode Day", saveLogBtn: "Save Current Session", clearLogsBtn: "🗑️ Clear All Logs", logsHistoryHeader: "📋 Saved Logs & History:",
                 msgAddedLog: "Session saved successfully!", msgClearedLogs: "All current logs cleared.",
                 ecuTitle: "ECU Tuning & Mapping", ecuSelect: "Select ECU Map File Type:", mapOption1: "Bosch EDC17 / MED17", mapOption2: "Siemens / Continental SIMOS", mapOption3: "Delphi DCM / MT80", ecuActionBtn: "Analyze & Calibrate Map", ecuSuccess: "Map calibrated and flow optimized successfully!",
                 statsTitle: "Subscribers & System Statistics", statLabel1: "Total Active Subscribers", statLabel2: "Successful Scans Today", statLabel3: "Diagnostic Accuracy", statLabel4: "Active ECUs",
                 adminTitle: "Admin Control Panel", adminPassLabel: "Admin Security Password:", adminBtn: "Secure Login", adminSuccess: "🔓 Login successful!",
-                tableTitle: "Global & Interactive DTC Table", tableSub: "You can add any new code and it will be saved to dictionary:", newCodeLabel: "Enter Fault Code:", newDescLabel: "Description:", placeholderDesc: "Enter code description...", addCodeBtn: "⚡ Fetch Smart Reading & Add to Table", dictionaryHeader: "Registered DTC Dictionary Codes:",
+                tableTitle: "Global & Interactive DTC Table", tableSub: "Enter code only (Leave description empty for automatic smart generation & logging):", newCodeLabel: "Enter Fault Code:", newDescLabel: "Description (Optional - Auto-generated):", placeholderDesc: "Leave empty for auto-generation...", addCodeBtn: "⚡ Fetch Smart Reading & Add to Table", dictionaryHeader: "Registered DTC Dictionary Codes:",
                 solutionsTitle: "Smart Solutions Library", solutionsSub: "Search for a fault code to view instant repair steps:", solutionsPlaceholder: "Enter code (e.g. P0300)...", solutionsSearchBtn: "Search Solution",
                 matrixTitle: "DTC Correlation Matrix", matrixSub: "Enter fault codes separated by comma (e.g. P0300, P0171):", matrixPlaceholder: "P0300, P0171...", matrixSearchBtn: "Analyze Correlation",
                 hexTitle: "Hex / Bin Map Viewer", hexSub: "Upload and simulate reading Bin file:", hexSimBtn: "Simulate Hex & Checksum Analysis", checksumVerifiedMsg: "✔️ Checksum verified successfully!",
@@ -921,7 +1013,7 @@
                 actuatorTitle: "Actuator & Sensor Tests", actuatorSub: "Test and activate electrical components manually:", testPumpBtn: "⛽ Test Fuel Pump", testFansBtn: "🌀 Test Radiator Fans", testInjectorsBtn: "💉 Test Injectors", testThrottleBtn: "🔄 Test Throttle Actuator", testOkMsg: "✔️ Test passed, component functional.",
                 officialReportTitle: "Official Workshop Reports", workshopNameLabel: "Workshop / Center Name:", workshopNameVal: "Pro Diagnostic Center", techNameLabel: "Technician Name:", techNamePh: "Technician name", clientNameLabel: "Client Name:", clientNamePh: "Client name", carDetailsLabel: "Vehicle Details:", carDetailsPh: "Ex: Golf 7", vinNumLabel: "VIN Number:", vinNumPh: "17 Chars", faultSummaryLabel: "Fault Summary & Notes:", faultSummaryPh: "System notes...", printOfficialBtn: "📄 Print Official Certified Report",
                 "bin-comparator": "Binary Comparator (Hex Diff)", file1Label: "Original Map File:", file2Label: "Modified Map File:", chooseFileBtn: "Choose File", noFileSelected: "No file chosen", compareBtn: "Compare Files", cmpResultHeader: "Difference Results:",
-                msgEnterCode: "Please enter diagnostic code and signal value!", fillFieldsMsg: "Please fill all required fields!"
+                msgEnterCode: "Please enter diagnostic code!", fillFieldsMsg: "Please fill required field!"
             }
         };
 
@@ -1227,12 +1319,12 @@
                         <h3>🛠️ ${t.tableTitle}</h3>
                         <p style="font-size:14px; color:#aaa;">${t.tableSub}</p>
                         <label>${t.newCodeLabel}</label>
-                        <input type="text" id="newDtc" placeholder="PXXXX">
+                        <input type="text" id="newDtc" placeholder="C1201, P0000...">
                         <label>${t.newDescLabel}</label>
                         <input type="text" id="newDesc" placeholder="${t.placeholderDesc}">
                         <button class="action-btn" onclick="addNewCodeToDictionary()">${t.addCodeBtn}</button>
                         <h4 style="color:var(--accent-color); margin-top:14px; font-size:15px;">${t.dictionaryHeader}</h4>
-                        <div id="dictionaryList" style="max-height:190px; overflow-y:auto; text-align:inherit; background:var(--bg-color); padding:8px; border-radius:8px; font-size:14px; border:1px solid var(--table-border);"></div>
+                        <div id="dictionaryList" style="max-height:230px; overflow-y:auto; text-align:inherit; background:var(--bg-color); padding:8px; border-radius:8px; font-size:14px; border:1px solid var(--table-border);"></div>
                     </div>
                 `;
                 setTimeout(renderDictionaryList, 50);
@@ -1316,10 +1408,13 @@
                             <option value="dark">${t.modeNight}</option>
                             <option value="light">${t.modeDay}</option>
                         </select>
-                        <button class="action-btn" onclick="alert('${t.msgAddedLog}')">${t.saveLogBtn}</button>
-                        <button class="action-btn clear-btn" onclick="alert('${t.msgClearedLogs}')">${t.clearLogsBtn}</button>
+                        <button class="action-btn" onclick="manualSaveSessionLog()">${t.saveLogBtn}</button>
+                        <button class="action-btn clear-btn" onclick="clearAllSavedLogs(); alert('${t.msgClearedLogs}');">${t.clearLogsBtn}</button>
+                        <h4 style="color:var(--accent-color); margin-top:16px; font-size:15px;">${t.logsHistoryHeader}</h4>
+                        <div id="dailyLogsContainer" style="max-height:220px; overflow-y:auto; background:var(--bg-color); border:1px solid var(--table-border); border-radius:8px; padding:6px;"></div>
                     </div>
                 `;
+                setTimeout(renderSessionLogsList, 50);
             } else if (type === 'ecu') {
                 html += `
                     <div class="tool-card">
@@ -1519,6 +1614,18 @@
             }
         }
 
+        function manualSaveSessionLog() {
+            const t = translations[currentLang];
+            if (lastData) {
+                const desc = getDtcDescription(lastData.code, currentLang);
+                appendSessionLog(lastData.code, desc, "حفظ يدوي للجلسة / Manual Session Save");
+            } else {
+                appendSessionLog("SYSTEM", "حفظ حالة جلسة الفحص الحالية / Session Snapshot", "حفظ يدوي / Manual Save");
+            }
+            renderSessionLogsList();
+            alert(t.msgAddedLog);
+        }
+
         function runAIPrediction() {
             const box = document.getElementById('aiResultBox');
             box.innerHTML = `<div style="background:var(--bg-color); border:1px solid #9d4edd; padding:10px; border-radius:8px; font-size:14px;">${translations[currentLang].aiResult}</div>`;
@@ -1531,6 +1638,7 @@
             const box = document.getElementById('crowdResultBox');
             const t = translations[currentLang];
             if(!code || !sol) { alert(t.fillFieldsMsg); return; }
+            saveCustomCode(code, sol, sol, sol);
             box.innerHTML = `<div style="background:var(--bg-color); border:1px solid #00b4d8; padding:10px; border-radius:8px; font-size:14px;">${t.crowdSuccess}</div>`;
             playBeepSound();
         }
@@ -1577,14 +1685,37 @@
         function addNewCodeToDictionary() {
             const dtcInput = document.getElementById('newDtc');
             const descInput = document.getElementById('newDesc');
-            if (!dtcInput || !descInput) return;
+            if (!dtcInput) return;
+
             const dtc = dtcInput.value.toUpperCase().trim();
-            const desc = descInput.value.trim();
-            if (!dtc || !desc) { alert(translations[currentLang].fillFieldsMsg); return; }
-            saveCustomCode(dtc, desc, desc, desc);
-            alert(`✔️ Added DTC ${dtc} successfully!`);
-            dtcInput.value = ""; descInput.value = "";
+            if (!dtc) {
+                alert(translations[currentLang].msgEnterCode);
+                return;
+            }
+
+            let manualDesc = descInput ? descInput.value.trim() : "";
+
+            if (manualDesc) {
+                saveCustomCode(dtc, manualDesc, manualDesc, manualDesc);
+            } else {
+                // البحث في القاموس الأساسي أو التوليد التلقائي وحفظه فوراً في السجل والقاموس
+                let resolvedDesc = getDtcDescription(dtc, 'ar');
+                let resolvedFr = getDtcDescription(dtc, 'fr');
+                let resolvedEn = getDtcDescription(dtc, 'en');
+                saveCustomCode(dtc, resolvedDesc, resolvedFr, resolvedEn);
+            }
+
+            // تحديث واجهة القائمة فوراً وإظهار الكود الجديد في الأعلى
             renderDictionaryList();
+
+            let successMsg = currentLang === 'ar' 
+                ? `✔️ تم حفظ الكود (${dtc}) وتحديث السجل والقاموس بنجاح!` 
+                : (currentLang === 'fr' ? `✔️ Code ${dtc} enregistré et ajouté au journal!` : `✔️ Code ${dtc} saved and logged successfully!`);
+
+            alert(successMsg);
+            dtcInput.value = "";
+            if (descInput) descInput.value = "";
+            playBeepSound();
         }
 
         function renderDictionaryList() {
@@ -1593,14 +1724,20 @@
             let currentLangKey = currentLang;
             let html = "<ul style='list-style:none; padding:0; margin:0;'>";
             
-            for (let code in baseDescriptions[currentLangKey]) {
-                html += `<li style="padding:6px 0; border-bottom:1px solid var(--table-border);"><strong>${code}:</strong> ${baseDescriptions[currentLangKey][code]}</li>`;
-            }
+            // عرض الأكواد المضافة والمحفوظة في السجل في أعلى القائمة أولاً
             let customDb = getCustomDictionary();
-            for (let code in customDb) {
+            let customKeys = Object.keys(customDb).reverse();
+            customKeys.forEach(code => {
                 let desc = customDb[code][currentLangKey] || customDb[code]['ar'];
-                let badgeText = currentLangKey === 'ar' ? 'مُكتشف' : (currentLangKey === 'fr' ? 'Appris' : 'Learned');
-                html += `<li style="padding:6px 0; border-bottom:1px solid var(--table-border);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
+                let badgeText = currentLangKey === 'ar' ? 'مسجّل حديثاً' : (currentLangKey === 'fr' ? 'Enregistré' : 'Saved');
+                html += `<li style="padding:7px 4px; border-bottom:1px solid var(--table-border); background:rgba(0, 255, 102, 0.06);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
+            });
+
+            // عرض الأكواد الأساسية المدمجة
+            for (let code in baseDescriptions[currentLangKey]) {
+                if (!customDb[code]) {
+                    html += `<li style="padding:6px 4px; border-bottom:1px solid var(--table-border);"><strong>${code}:</strong> ${baseDescriptions[currentLangKey][code]}</li>`;
+                }
             }
             html += "</ul>";
             listDiv.innerHTML = html;
@@ -1669,6 +1806,8 @@
             renderResults(lastData);
             
             let descriptionText = getDtcDescription(code, currentLang);
+            appendSessionLog(code, descriptionText, engineResult.success ? "فحص مؤكد / Confirmed Fault" : "فلترة تشويش / Filtered Noise");
+
             let speechMsg = "";
             if (currentLang === 'ar') {
                 speechMsg = engineResult.success 
@@ -1762,6 +1901,8 @@
         function cloudSyncAdvancedData() {
             if (!lastData) { alert(translations[currentLang].msgEnterCode); return; }
             const vinNum = document.getElementById('diagVinNum')?.value || "N/A";
+            const desc = getDtcDescription(lastData.code, currentLang);
+            appendSessionLog(lastData.code, `${desc} (VIN: ${vinNum})`, "مزامنة سحابية / Cloud Sync");
             alert(`✔️ Cloud Sync Complete for VIN: ${vinNum}`);
         }
 
