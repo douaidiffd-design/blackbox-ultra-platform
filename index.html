@@ -432,9 +432,13 @@
     </div>
 
     <script>
-        // نظام التخزين المزدوج والتزامن الفوري لضمان حفظ الأكواد والسجلات عبر الأجهزة والمتصفحات
+        // نظام التخزين المزدوج والتزامن السحابي الفوري بين الهاتف والحاسوب
         const STORAGE_KEY_CODES = 'ecu_custom_learned_codes_v2';
         const STORAGE_KEY_LOGS  = 'ecu_daily_session_logs_v2';
+        
+        // نقطة النهاية السحابية المشتركة لتزامن الأكواد بين الأجهزة
+        const CLOUD_SYNC_API = 'https://api.npoint.io/ecu_shared_platform_sync_2026';
+        
         let memoryFallbackCodes = {};
         let memoryFallbackLogs  = [];
 
@@ -451,12 +455,45 @@
         function safeSetStorage(key, value) {
             try {
                 localStorage.setItem(key, JSON.stringify(value));
+                // إرسال التحديثات تلقائياً للسحابة عند الحفظ من أي جهاز
+                pushDataToCloud(key, value);
                 return true;
             } catch (e) {
                 console.warn("Could not write to localStorage:", e);
                 return false;
             }
         }
+
+        // دالة رفع البيانات للسحابة
+        function pushDataToCloud(key, data) {
+            if (key === STORAGE_KEY_CODES) {
+                fetch(CLOUD_SYNC_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).catch(err => console.log("Cloud push queued:", err));
+            }
+        }
+
+        // دالة الجلب التلقائي من السحابة لضمان التزامن بين الأجهزة
+        function pollCloudSync() {
+            fetch(CLOUD_SYNC_API)
+                .then(res => res.json())
+                .then(cloudData => {
+                    if (cloudData && typeof cloudData === 'object') {
+                        const localData = safeGetStorage(STORAGE_KEY_CODES, {});
+                        // دمج البيانات لضمان عدم ضياع أي كود مدخل محلياً
+                        const mergedCodes = { ...cloudData, ...localData };
+                        localStorage.setItem(STORAGE_KEY_CODES, JSON.stringify(mergedCodes));
+                        memoryFallbackCodes = mergedCodes;
+                        renderDictionaryList();
+                    }
+                })
+                .catch(err => console.log("Cloud sync waiting..."));
+        }
+
+        // فحص السحابة وجلب التحديثات تلقائياً كل 10 ثوانٍ
+        setInterval(pollCloudSync, 10000);
 
         // الاستماع الفوري للتحديثات بين النوافذ والأجهزة المتصلة
         window.addEventListener('storage', function(e) {
@@ -562,12 +599,46 @@
             window.onclick = (e) => { if (e.target == feedbackModal) { feedbackModal.style.display = 'none'; } };
         }
 
-        function submitFeedback(e) {
-            e.preventDefault();
-            alert(translations[currentLang].fbAlert);
-            feedbackModal.style.display = 'none';
-            document.getElementById('feedbackForm').reset();
-        }
+        // استبدل دالة submitFeedback القديمة (حколо السطر 411) بهذا الكود المعدل:
+function submitFeedback(event) {
+    event.preventDefault(); // لمنع إعادة تحميل الصفحة الافتراضية
+
+    // 1. استخراج البيانات من الحقول الموجودة في النموذج
+    const userNameElement = document.getElementById('userName');
+    const userRatingElement = document.getElementById('userRating');
+    const userCommentElement = document.getElementById('userComment');
+
+    const userName = userNameElement ? userNameElement.value : "زائر";
+    const userRating = userRatingElement ? userRatingElement.value : "ممتاز";
+    const userComment = userCommentElement ? userCommentElement.value : "";
+
+    // التأكد من إدخال التعليق على الأقل
+    if (!userComment.trim()) {
+        alert("الرجاء كتابة ملاحظتك أو تقييمك قبل الإرسال.");
+        return;
+    }
+
+    // 2. التحقق من توفر دالة الحفظ السحابي واستدعائها لتتم المزامنة الفورية
+    if (typeof window.saveFaultCodeToCloud === "function") {
+        // استخدام اسم المستخدم أو معرف فريد كمرجع في قاعدة البيانات
+        const entryKey = "feedback_" + Date.now();
+        
+        window.saveFaultCodeToCloud(entryKey, {
+            name: userName,
+            rating: userRating,
+            comment: userComment,
+            timestamp: new Date().toISOString()
+        });
+
+        alert("تم حفظ البيانات وتزامنها سحابياً بنجاح عبر Firebase!");
+        
+        // تفريغ الحقول بعد الإرسال بنجاح
+        if (userCommentElement) userCommentElement.value = "";
+    } else {
+        console.error("خطأ: دالة التزامن السحابي saveFaultCodeToCloud غير معرفة بعد.");
+        alert("فشل الاتصال بقاعدة البيانات السحابية.");
+    }
+}
 
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -1939,5 +2010,53 @@
             output.innerText = currentLang === 'ar' ? "✔️ تمت مقارنة الملفات بنجاح: مطابقة بنسبة 98.4%." : (currentLang === 'fr' ? "✔️ Fichiers comparés avec succès : 98.4% de correspondance." : "✔️ Files compared successfully: 98.4% match.");
         }
     </script>
+    <script type="module">
+    // 1. استيراد مكتبات Firebase من شبكة CDN الرسمية
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // 2. إعدادات مشروعك السحابي في Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAo2Ny862cq1JGfyV7kQi4KzWsOCYMAYF8",
+        authDomain: "smartecu-platform.firebaseapp.com",
+        databaseURL: "https://smartecu-platform-default-rtdb.firebaseio.com",
+        projectId: "smartecu-platform",
+        storageBucket: "smartecu-platform.firebasestorage.app",
+        messagingSenderId: "951464054624",
+        appId: "1:951464054624:web:3301cbf395f8c099b25805"
+    };
+
+    // 3. تهيئة الاتصال بقاعدة البيانات
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 4. دالة حفظ كود العطل (DTC) وتزامنه فوراً مع الهاتف والحاسوب
+    window.saveFaultCodeToCloud = function(code, description) {
+        const codeRef = ref(db, 'ecu_codes/' + code);
+        set(codeRef, {
+            code: code,
+            description: description,
+            timestamp: new Date().toISOString()
+        }).then(() => {
+            console.log("تم حفظ الكود وتزامنه سحابياً بنجاح!");
+        }).catch((error) => {
+            console.error("خطأ في المزامنة:", error);
+        });
+    };
+
+    // 5. مستمع فوري (Real-time Listener) لجلب أي أكواد جديدة وتحديث الشاشة تلقائياً
+    const allCodesRef = ref(db, 'ecu_codes/');
+    onValue(allCodesRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            console.log("تم استقبال البيانات المحدثة:", data);
+            
+            // استبدل الدالة أدناه باسم دالة العرض الموجودة لديك في المنصة لتحديث الجدول
+            if (typeof renderDictionaryList === "function") {
+                renderDictionaryList(data);
+            }
+        }
+    });
+</script>
 </body>
 </html>
