@@ -268,6 +268,7 @@
     <div class="top-bar">
         <button class="control-btn" id="themeBtn" onclick="toggleTheme()">☀️ الوضع النهاري</button>
         <button class="control-btn" id="installAppBtn">🛠️ تثبيت التطبيق</button>
+        <button class="control-btn" id="flaskSyncBtn" onclick="syncWithFlaskServer()" style="background:#00adb5; color:#fff; font-weight:bold;">🔄 مزامنة Flask</button>
         <button class="control-btn" id="resetBtn" onclick="showDashboard()">↩️ القائمة الرئيسية</button>
     </div>
 
@@ -432,12 +433,9 @@
     </div>
 
     <script>
-        // نظام التخزين المزدوج والتزامن السحابي الفوري بين الهاتف والحاسوب
+        // نظام التخزين المحلي والتزامن السحابي عبر Firebase Realtime Database
         const STORAGE_KEY_CODES = 'ecu_custom_learned_codes_v2';
         const STORAGE_KEY_LOGS  = 'ecu_daily_session_logs_v2';
-        
-        // نقطة النهاية السحابية المشتركة لتزامن الأكواد بين الأجهزة
-        const CLOUD_SYNC_API = 'https://api.npoint.io/ecu_shared_platform_sync_2026';
         
         let memoryFallbackCodes = {};
         let memoryFallbackLogs  = [];
@@ -455,54 +453,12 @@
         function safeSetStorage(key, value) {
             try {
                 localStorage.setItem(key, JSON.stringify(value));
-                // إرسال التحديثات تلقائياً للسحابة عند الحفظ من أي جهاز
-                pushDataToCloud(key, value);
                 return true;
             } catch (e) {
                 console.warn("Could not write to localStorage:", e);
                 return false;
             }
         }
-
-        // دالة رفع البيانات للسحابة
-        function pushDataToCloud(key, data) {
-            if (key === STORAGE_KEY_CODES) {
-                fetch(CLOUD_SYNC_API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                }).catch(err => console.log("Cloud push queued:", err));
-            }
-        }
-
-        // دالة الجلب التلقائي من السحابة لضمان التزامن بين الأجهزة
-        function pollCloudSync() {
-            fetch(CLOUD_SYNC_API)
-                .then(res => res.json())
-                .then(cloudData => {
-                    if (cloudData && typeof cloudData === 'object') {
-                        const localData = safeGetStorage(STORAGE_KEY_CODES, {});
-                        // دمج البيانات لضمان عدم ضياع أي كود مدخل محلياً
-                        const mergedCodes = { ...cloudData, ...localData };
-                        localStorage.setItem(STORAGE_KEY_CODES, JSON.stringify(mergedCodes));
-                        memoryFallbackCodes = mergedCodes;
-                        renderDictionaryList();
-                    }
-                })
-                .catch(err => console.log("Cloud sync waiting..."));
-        }
-
-        // فحص السحابة وجلب التحديثات تلقائياً كل 10 ثوانٍ
-        setInterval(pollCloudSync, 10000);
-
-        // الاستماع الفوري للتحديثات بين النوافذ والأجهزة المتصلة
-        window.addEventListener('storage', function(e) {
-            if (e.key === STORAGE_KEY_CODES) {
-                renderDictionaryList();
-            } else if (e.key === STORAGE_KEY_LOGS) {
-                renderSessionLogsList();
-            }
-        });
 
         function getCustomDictionary() {
             const stored = safeGetStorage(STORAGE_KEY_CODES, null);
@@ -516,15 +472,24 @@
         function saveCustomCode(code, descAr, descFr, descEn) {
             code = code.toUpperCase().trim();
             let customDb = getCustomDictionary();
-            customDb[code] = {
-                ar: descAr,
-                fr: descFr || descAr,
-                en: descEn || descAr,
-                timestamp: new Date().toLocaleString()
-            };
-            memoryFallbackCodes = customDb;
-            safeSetStorage(STORAGE_KEY_CODES, customDb);
-            appendSessionLog(code, descAr, "إضافة للقاموس / Added to Dictionary");
+           const finalFr = (descFr && descFr !== descAr)
+    ? descFr
+    : (typeof getDtcDescription === "function" ? getDtcDescription(code, 'fr') : descAr);
+
+const finalEn = (descEn && descEn !== descAr)
+    ? descEn
+    : (typeof getDtcDescription === "function" ? getDtcDescription(code, 'en') : descAr);
+
+customDb[code] = {
+    ar: descAr,
+    fr: finalFr || descAr,
+    en: finalEn || descAr,
+    timestamp: new Date().toLocaleString()
+};
+            // إرسال الكود فوراً إلى سحابة Firebase لتتم مزامنته مع الهاتف أو الأجهزة الأخرى
+            if (typeof window.saveFaultCodeToCloud === "function") {
+                window.saveFaultCodeToCloud(code, descAr);
+            }
         }
 
         function getSessionLogs() {
@@ -599,46 +564,35 @@
             window.onclick = (e) => { if (e.target == feedbackModal) { feedbackModal.style.display = 'none'; } };
         }
 
-        // استبدل دالة submitFeedback القديمة (حколо السطر 411) بهذا الكود المعدل:
-function submitFeedback(event) {
-    event.preventDefault(); // لمنع إعادة تحميل الصفحة الافتراضية
+        function submitFeedback(event) {
+            event.preventDefault();
+            const userNameElement = document.getElementById('userName');
+            const userRatingElement = document.getElementById('userRating');
+            const userCommentElement = document.getElementById('userComment');
 
-    // 1. استخراج البيانات من الحقول الموجودة في النموذج
-    const userNameElement = document.getElementById('userName');
-    const userRatingElement = document.getElementById('userRating');
-    const userCommentElement = document.getElementById('userComment');
+            const userName = userNameElement ? userNameElement.value : "زائر";
+            const userRating = userRatingElement ? userRatingElement.value : "ممتاز";
+            const userComment = userCommentElement ? userCommentElement.value : "";
 
-    const userName = userNameElement ? userNameElement.value : "زائر";
-    const userRating = userRatingElement ? userRatingElement.value : "ممتاز";
-    const userComment = userCommentElement ? userCommentElement.value : "";
+            if (!userComment.trim()) {
+                alert("الرجاء كتابة ملاحظتك أو تقييمك قبل الإرسال.");
+                return;
+            }
 
-    // التأكد من إدخال التعليق على الأقل
-    if (!userComment.trim()) {
-        alert("الرجاء كتابة ملاحظتك أو تقييمك قبل الإرسال.");
-        return;
-    }
-
-    // 2. التحقق من توفر دالة الحفظ السحابي واستدعائها لتتم المزامنة الفورية
-    if (typeof window.saveFaultCodeToCloud === "function") {
-        // استخدام اسم المستخدم أو معرف فريد كمرجع في قاعدة البيانات
-        const entryKey = "feedback_" + Date.now();
-        
-        window.saveFaultCodeToCloud(entryKey, {
-            name: userName,
-            rating: userRating,
-            comment: userComment,
-            timestamp: new Date().toISOString()
-        });
-
-        alert("تم حفظ البيانات وتزامنها سحابياً بنجاح عبر Firebase!");
-        
-        // تفريغ الحقول بعد الإرسال بنجاح
-        if (userCommentElement) userCommentElement.value = "";
-    } else {
-        console.error("خطأ: دالة التزامن السحابي saveFaultCodeToCloud غير معرفة بعد.");
-        alert("فشل الاتصال بقاعدة البيانات السحابية.");
-    }
-}
+            if (typeof window.saveFaultCodeToCloud === "function") {
+                const entryKey = "feedback_" + Date.now();
+                window.saveFaultCodeToCloud(entryKey, {
+                    name: userName,
+                    rating: userRating,
+                    comment: userComment,
+                    timestamp: new Date().toISOString()
+                });
+                alert("تم حفظ البيانات وتزامنها سحابياً بنجاح عبر Firebase!");
+                if (userCommentElement) userCommentElement.value = "";
+            } else {
+                alert("فشل الاتصال بقاعدة البيانات السحابية.");
+            }
+        }
 
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -1785,6 +1739,17 @@ function submitFeedback(event) {
             }
 
             renderDictionaryList();
+            if (typeof autoPushCodeToFlask === "function") {
+    const finalAr = manualDesc || (typeof resolvedDesc !== "undefined" ? resolvedDesc : "");
+    const finalFr = manualDesc || (typeof resolvedFr !== "undefined" ? resolvedFr : finalAr);
+    const finalEn = manualDesc || (typeof resolvedEn !== "undefined" ? resolvedEn : finalAr);
+    autoPushCodeToFlask({
+        code: dtc,
+        desc_ar: finalAr,
+        desc_fr: finalFr,
+        desc_en: finalEn
+    });
+}
 
             let successMsg = currentLang === 'ar' 
                 ? `✔️ تم حفظ الكود (${dtc}) وتحديث السجل والقاموس بنجاح!` 
@@ -1805,7 +1770,11 @@ function submitFeedback(event) {
             let customDb = getCustomDictionary();
             let customKeys = Object.keys(customDb).reverse();
             customKeys.forEach(code => {
-                let desc = customDb[code][currentLangKey] || customDb[code]['ar'];
+let savedDesc = customDb[code][currentLangKey];
+const isArabicText = /[\u0600-\u06FF]/.test(savedDesc || "");
+let desc = (savedDesc && !(currentLangKey !== 'ar' && isArabicText))
+    ? savedDesc
+    : (typeof getDtcDescription === "function" ? getDtcDescription(code, currentLangKey) : (savedDesc || customDb[code]['ar']));
                 let badgeText = currentLangKey === 'ar' ? 'مسجّل حديثاً' : (currentLangKey === 'fr' ? 'Enregistré' : 'Saved');
                 html += `<li style="padding:7px 4px; border-bottom:1px solid var(--table-border); background:rgba(0, 255, 102, 0.06);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
             });
@@ -2009,54 +1978,200 @@ function submitFeedback(event) {
             }
             output.innerText = currentLang === 'ar' ? "✔️ تمت مقارنة الملفات بنجاح: مطابقة بنسبة 98.4%." : (currentLang === 'fr' ? "✔️ Fichiers comparés avec succès : 98.4% de correspondance." : "✔️ Files compared successfully: 98.4% match.");
         }
-    </script>
-    <script type="module">
-    // 1. استيراد مكتبات Firebase من شبكة CDN الرسمية
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        const FLASK_API_URL = "http://127.0.0.1:5000/api";
 
-    // 2. إعدادات مشروعك السحابي في Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAo2Ny862cq1JGfyV7kQi4KzWsOCYMAYF8",
-        authDomain: "smartecu-platform.firebaseapp.com",
-        databaseURL: "https://smartecu-platform-default-rtdb.firebaseio.com",
-        projectId: "smartecu-platform",
-        storageBucket: "smartecu-platform.firebasestorage.app",
-        messagingSenderId: "951464054624",
-        appId: "1:951464054624:web:3301cbf395f8c099b25805"
-    };
+        async function syncWithFlaskServer() {
+            const btn = document.getElementById("flaskSyncBtn");
+            const originalText = btn ? btn.innerText : "";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "⏳ جاري المزامنة...";
+            }
 
-    // 3. تهيئة الاتصال بقاعدة البيانات
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+            try {
+                const healthRes = await fetch(`${FLASK_API_URL}/health`);
+                if (!healthRes.ok) {
+                    throw new Error("فشل الاتصال بسيرفر Flask");
+                }
 
-    // 4. دالة حفظ كود العطل (DTC) وتزامنه فوراً مع الهاتف والحاسوب
-    window.saveFaultCodeToCloud = function(code, description) {
-        const codeRef = ref(db, 'ecu_codes/' + code);
-        set(codeRef, {
-            code: code,
-            description: description,
-            timestamp: new Date().toISOString()
-        }).then(() => {
-            console.log("تم حفظ الكود وتزامنه سحابياً بنجاح!");
-        }).catch((error) => {
-            console.error("خطأ في المزامنة:", error);
-        });
-    };
+                const customDb = typeof getCustomDictionary === "function" ? getCustomDictionary() : {};
+                const localLogs = typeof getSessionLogs === "function" ? getSessionLogs() : [];
 
-    // 5. مستمع فوري (Real-time Listener) لجلب أي أكواد جديدة وتحديث الشاشة تلقائياً
-    const allCodesRef = ref(db, 'ecu_codes/');
-    onValue(allCodesRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            console.log("تم استقبال البيانات المحدثة:", data);
-            
-            // استبدل الدالة أدناه باسم دالة العرض الموجودة لديك في المنصة لتحديث الجدول
-            if (typeof renderDictionaryList === "function") {
-                renderDictionaryList(data);
+                const codesPayload = Object.keys(customDb).map(code => ({
+                    code: code,
+                    desc_ar: customDb[code].ar || "",
+                    desc_fr: customDb[code].fr || customDb[code].ar || "",
+                    desc_en: customDb[code].en || customDb[code].ar || ""
+                }));
+
+                const logsPayload = localLogs.map(item => ({
+                    code: item.code || "SYSTEM",
+                    description: item.description || "",
+                    action_type: item.action || "sync",
+                    log_time: item.time || new Date().toLocaleString()
+                }));
+
+                await fetch(`${FLASK_API_URL}/sync-all`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        codes: codesPayload,
+                        logs: logsPayload
+                    })
+                });
+
+                const codesRes = await fetch(`${FLASK_API_URL}/codes`);
+                if (codesRes.ok) {
+                    const serverCodes = await codesRes.json();
+                    const mergedDb = typeof getCustomDictionary === "function" ? getCustomDictionary() : {};
+                    serverCodes.forEach(row => {
+                        if (row.code) {
+                            mergedDb[row.code.toUpperCase()] = {
+                                ar: row.desc_ar || row.code,
+                                fr: row.desc_fr || row.desc_ar || row.code,
+                                en: row.desc_en || row.desc_ar || row.code,
+                                timestamp: row.created_at || new Date().toLocaleString()
+                            };
+                        }
+                    });
+                    if (typeof memoryFallbackCodes !== "undefined") {
+                        memoryFallbackCodes = mergedDb;
+                    }
+                    if (typeof safeSetStorage === "function" && typeof STORAGE_KEY_CODES !== "undefined") {
+                        safeSetStorage(STORAGE_KEY_CODES, mergedDb);
+                    } else {
+                        localStorage.setItem("ecu_custom_learned_codes_v2", JSON.stringify(mergedDb));
+                    }
+                }
+
+                const logsRes = await fetch(`${FLASK_API_URL}/logs`);
+                if (logsRes.ok) {
+                    const serverLogs = await logsRes.json();
+                    const formattedLogs = serverLogs.map(row => ({
+                        code: row.code || "SYSTEM",
+                        description: row.description || "",
+                        action: row.action_type || "db_sync",
+                        time: row.log_time || row.created_at || new Date().toLocaleString()
+                    }));
+                    if (typeof memoryFallbackLogs !== "undefined") {
+                        memoryFallbackLogs = formattedLogs;
+                    }
+                    if (typeof safeSetStorage === "function" && typeof STORAGE_KEY_LOGS !== "undefined") {
+                        safeSetStorage(STORAGE_KEY_LOGS, formattedLogs);
+                    } else {
+                        localStorage.setItem("ecu_daily_session_logs_v2", JSON.stringify(formattedLogs));
+                    }
+                }
+
+                if (typeof renderDictionaryList === "function") {
+                    renderDictionaryList();
+                }
+                if (typeof renderSessionLogsList === "function") {
+                    renderSessionLogsList();
+                }
+
+                alert("✔️ تمت المزامنة بنجاح مع سيرفر Flask وقاعدة بيانات MySQL!");
+            } catch (err) {
+                console.error("Flask Sync Error:", err);
+                alert("⚠️ تعذر الاتصال بسيرفر Flask على المنفذ 5000. تأكد من تشغيل app.py أولاً.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = originalText || "🔄 مزامنة Flask";
+                }
             }
         }
-    });
-</script>
+        async function autoPushCodeToFlask(codeObj) {
+    if (!codeObj || !codeObj.code) return;
+    const baseUrl = (typeof FLASK_API_URL !== "undefined")
+        ? FLASK_API_URL
+        : "http://127.0.0.1:5000/api";
+    try {
+        await fetch(`${baseUrl}/codes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                code: codeObj.code,
+                desc_ar: codeObj.desc_ar || codeObj.ar || "",
+                desc_fr: codeObj.desc_fr || codeObj.fr || codeObj.desc_ar || "",
+                desc_en: codeObj.desc_en || codeObj.en || codeObj.desc_ar || ""
+            })
+        });
+    } catch (err) {
+        console.warn("تم تخطي الإرسال التلقائي إلى Flask (تعذر الوصول للسيرفر):", err);
+    }
+}
+    </script>
+    <script type="module">
+        // 1. استيراد مكتبات Firebase من شبكة CDN الرسمية
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // 2. إعدادات مشروعك السحابي في Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAo2Ny862cq1JGfyV7kQi4KzWsOCYMAYF8",
+            authDomain: "smartecu-platform.firebaseapp.com",
+            databaseURL: "https://smartecu-platform-default-rtdb.firebaseio.com",
+            projectId: "smartecu-platform",
+            storageBucket: "smartecu-platform.firebasestorage.app",
+            messagingSenderId: "951464054624",
+            appId: "1:951464054624:web:3301cbf395f8c099b25805"
+        };
+
+        // 3. تهيئة الاتصال بقاعدة البيانات
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // 4. دالة حفظ كود العطل أو البيانات وتزامنها فوراً مع السحابة
+        window.saveFaultCodeToCloud = function(code, description) {
+            const codeRef = ref(db, 'ecu_codes/' + code);
+            const dataToSave = typeof description === 'object' ? description : {
+                code: code,
+                description: description,
+                timestamp: new Date().toISOString()
+            };
+            set(codeRef, dataToSave).then(() => {
+                console.log("تم حفظ الكود وتزامنه سحابياً بنجاح!");
+            }).catch((error) => {
+                console.error("خطأ في المزامنة:", error);
+            });
+        };
+
+        // 5. مستمع فوري (Real-time Listener) لجلب أي أكواد جديدة وتحديث الشاشة تلقائياً بين الأجهزة
+        const allCodesRef = ref(db, 'ecu_codes/');
+        onValue(allCodesRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                console.log("تم استقبال البيانات المحدثة من السحابة:", data);
+                
+                let localDb = JSON.parse(localStorage.getItem('ecu_custom_learned_codes_v2') || '{}');
+                let updated = false;
+
+                for (let key in data) {
+                    if (key.startsWith('feedback_')) continue; // استثناء رسائل التقيمات
+                    let item = data[key];
+                    let desc = typeof item === 'object' ? (item.ar || item.description || key) : item;
+
+                    if (!localDb[key]) {
+                        localDb[key] = {
+                            ar: desc,
+                            fr: desc,
+                            en: desc,
+                            timestamp: item.timestamp || new Date().toLocaleString()
+                        };
+                        updated = true;
+                    }
+                }
+
+                if (updated) {
+                    localStorage.setItem('ecu_custom_learned_codes_v2', JSON.stringify(localDb));
+                }
+
+                if (typeof renderDictionaryList === "function") {
+                    renderDictionaryList();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
