@@ -521,26 +521,29 @@ customDb[code] = {
         }
 
         function renderSessionLogsList() {
-            const container = document.getElementById('dailyLogsContainer');
-            if (!container) return;
-            const logs = getSessionLogs();
-            if (logs.length === 0) {
-                container.innerHTML = `<p style="color:#888; text-align:center; padding:10px;">${currentLang === 'ar' ? 'لا توجد سجلات محفوظة حالياً.' : (currentLang === 'fr' ? 'Aucun journal enregistré.' : 'No saved logs yet.')}</p>`;
-                return;
-            }
-            let html = '';
-            logs.forEach(item => {
-                html += `
-                    <div class="log-entry">
-                        <div>
-                            <strong style="color:var(--accent-color);">${item.code}</strong>: ${item.description}
-                            <div style="font-size:11px; color:#888; margin-top:2px;">${item.action} • ${item.time}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
+    const container = document.getElementById('dailyLogsContainer');
+    if (!container) return;
+    const logs = getSessionLogs();
+    if (logs.length === 0) {
+        container.innerHTML = `<p style="color:#888; text-align:center; padding:10px;">${currentLang === 'ar' ? 'لا توجد سجلات محفوظة حالياً.' : (currentLang === 'fr' ? 'Aucun journal enregistré.' : 'No saved logs yet.')}</p>`;
+        return;
+    }
+    let html = '';
+    logs.forEach(item => {
+        const dynDesc = typeof resolveDynamicDesc === "function"
+            ? resolveDynamicDesc(item.code, item.description, currentLang)
+            : item.description;
+        html += `
+            <div class="log-entry">
+                <div>
+                    <strong style="color:var(--accent-color);">${item.code}</strong>: ${dynDesc}
+                    <div style="font-size:11px; color:#888; margin-top:2px;">${item.action} • ${item.time}</div>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
 
         function accessAdminPanel() {
             const adminPass = "2026";
