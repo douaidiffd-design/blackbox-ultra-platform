@@ -1765,31 +1765,32 @@ customDb[code] = {
         }
 
         function renderDictionaryList() {
-            const listDiv = document.getElementById('dictionaryList');
-            if (!listDiv) return;
-            let currentLangKey = currentLang;
-            let html = "<ul style='list-style:none; padding:0; margin:0;'>";
-            
-            let customDb = getCustomDictionary();
-            let customKeys = Object.keys(customDb).reverse();
-            customKeys.forEach(code => {
-let savedDesc = customDb[code][currentLangKey];
-const isArabicText = /[\u0600-\u06FF]/.test(savedDesc || "");
-let desc = (savedDesc && !(currentLangKey !== 'ar' && isArabicText))
-    ? savedDesc
-    : (typeof getDtcDescription === "function" ? getDtcDescription(code, currentLangKey) : (savedDesc || customDb[code]['ar']));
-                let badgeText = currentLangKey === 'ar' ? 'مسجّل حديثاً' : (currentLangKey === 'fr' ? 'Enregistré' : 'Saved');
-                html += `<li style="padding:7px 4px; border-bottom:1px solid var(--table-border); background:rgba(0, 255, 102, 0.06);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
-            });
+    const listDiv = document.getElementById('dictionaryList');
+    if (!listDiv) return;
+    let currentLangKey = currentLang;
+    let html = "<ul style='list-style:none; padding:0; margin:0;'>";
 
-            for (let code in baseDescriptions[currentLangKey]) {
-                if (!customDb[code]) {
-                    html += `<li style="padding:6px 4px; border-bottom:1px solid var(--table-border);"><strong>${code}:</strong> ${baseDescriptions[currentLangKey][code]}</li>`;
-                }
-            }
-            html += "</ul>";
-            listDiv.innerHTML = html;
+    let customDb = getCustomDictionary();
+    let customKeys = Object.keys(customDb).reverse();
+    customKeys.forEach(code => {
+        let rawDesc = customDb[code][currentLangKey] || customDb[code]['ar'] || "";
+        let hasArabic = /[\u0600-\u06FF]/.test(rawDesc);
+        let desc = (currentLangKey !== 'ar' && hasArabic && typeof getDtcDescription === "function")
+            ? getDtcDescription(code, currentLangKey)
+            : (rawDesc || (typeof getDtcDescription === "function" ? getDtcDescription(code, currentLangKey) : code));
+
+        let badgeText = currentLangKey === 'ar' ? 'مسجّل حديثاً' : (currentLangKey === 'fr' ? 'Enregistré' : 'Saved');
+        html += `<li style="padding:7px 4px; border-bottom:1px solid var(--table-border); background:rgba(0, 255, 102, 0.06);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
+    });
+
+    for (let code in baseDescriptions[currentLangKey]) {
+        if (!customDb[code]) {
+            html += `<li style="padding:6px 4px; border-bottom:1px solid var(--table-border);"><strong>${code}:</strong> ${baseDescriptions[currentLangKey][code]}</li>`;
         }
+    }
+    html += "</ul>";
+    listDiv.innerHTML = html;
+}
 
         function startLiveStream() {
             if (liveDataInterval) clearInterval(liveDataInterval);
