@@ -1361,8 +1361,19 @@ customDb[code] = {
                         <input type="text" id="newDesc" placeholder="${t.placeholderDesc}">
                         <button class="action-btn" onclick="addNewCodeToDictionary()">${t.addCodeBtn}</button>
                         <h4 style="color:var(--accent-color); margin-top:14px; font-size:15px;">${t.dictionaryHeader}</h4>
-                        <div id="dictionaryList" style="max-height:230px; overflow-y:auto; text-align:inherit; background:var(--bg-color); padding:8px; border-radius:8px; font-size:14px; border:1px solid var(--table-border);"></div>
-                    </div>
+<div id="dictProControls" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+    <input type="text" id="dictSearchInput" oninput="renderDictionaryList()" placeholder="ابحث بالكود أو الوصف (مثال: P0340, ABS, DPF)..." style="flex:1; min-width:200px; padding:8px; border-radius:6px; border:1px solid var(--table-border); background:transparent; color:inherit;">
+    <select id="dictCategoryFilter" onchange="renderDictionaryList()" style="padding:8px; border-radius:6px; border:1px solid var(--table-border); background:#111827; color:#fff;">
+        <option value="ALL">ALL (P / C / B / U)</option>
+        <option value="P">P - Powertrain</option>
+        <option value="C">C - Chassis / ABS</option>
+        <option value="B">B - Body / Airbag</option>
+        <option value="U">U - Network / CAN</option>
+    </select>
+</div>
+                         <div id="dictionaryList" style="max-height:230px; overflow-y:auto; text-align:inherit; background:var(--bg-color); padding:8px; border-radius:8px; font-size:14px; border:1px solid var(--table-border);"></div>
+                         
+                    </div> 
                 `;
                 setTimeout(renderDictionaryList, 50);
             } else if (type === 'store') {
@@ -1763,34 +1774,132 @@ customDb[code] = {
             if (descInput) descInput.value = "";
             playBeepSound();
         }
-
-        function renderDictionaryList() {
+function renderDictionaryList() {
     const listDiv = document.getElementById('dictionaryList');
     if (!listDiv) return;
-    let currentLangKey = currentLang;
-    let html = "<ul style='list-style:none; padding:0; margin:0;'>";
 
-    let customDb = getCustomDictionary();
+    listDiv.style.maxHeight = "320px";
+
+    const currentLangKey = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "ar";
+    const searchVal = (document.getElementById('dictSearchInput')?.value || "").trim().toLowerCase();
+    const catVal = document.getElementById('dictCategoryFilter')?.value || "ALL";
+
+    let html = "<ul style='list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px;'>";
+
+    const matchesFilter = (code, desc) => {
+        const cUpper = (code || "").toUpperCase();
+        const catOk = (catVal === "ALL") || cUpper.startsWith(catVal);
+        if (!catOk) return false;
+        if (!searchVal) return true;
+        return cUpper.toLowerCase().includes(searchVal) || (desc || "").toLowerCase().includes(searchVal);
+    };
+
+    const getFallbackSeverity = (code) => {
+        const c = (code || "").toUpperCase();
+        if (c.startsWith("B") || c.startsWith("C") || c === "P0087" || c === "P0088") {
+            return { level: "HIGH", ar: "أولوية عالية", fr: "Priorité élevée", en: "High Priority" };
+        }
+        if (c.startsWith("U")) {
+            return { level: "MEDIUM", ar: "شبكة اتصال", fr: "Réseau / CAN", en: "Network / CAN" };
+        }
+        return { level: "STANDARD", ar: "فحص قياسي", fr: "Contrôle standard", en: "Standard Check" };
+    };
+
+    const getFallbackChecklist = (code, lang) => {
+        const c = (code || "").toUpperCase();
+        if (c.startsWith("U")) {
+            return lang === "fr"
+                ? ["Vérifier tension batterie et masses.", "Contrôler faisceau CAN et connecteurs."]
+                : lang === "en"
+                    ? ["Check battery voltage and grounds.", "Inspect CAN bus wiring and connectors."]
+                    : ["فحص جهد البطارية ونقاط الأرضي.", "فحص خطوط الاتصال والفيش."];
+        }
+        if (c.startsWith("C")) {
+            return lang === "fr"
+                ? ["Contrôler capteur, faisceau et cible.", "Observer vitesse roues en temps réel."]
+                : lang === "en"
+                    ? ["Inspect sensor, harness, and tone ring.", "Monitor wheel speed in live data."]
+                    : ["فحص الحساس والأسلاك وحلقة السرعة.", "مراقبة سرعة العجلات في القيم الحية."];
+        }
+        return lang === "fr"
+            ? ["Contrôler connecteurs, faisceau et fuites.", "Analyser données temps réel avant remplacement."]
+            : lang === "en"
+                ? ["Inspect connectors, wiring, and leaks.", "Check live data before replacing parts."]
+                : ["فحص الفيش والأسلاك والتسريبات.", "قراءة القيم الحية قبل استبدال أي قطعة."];
+    };
+
+    const buildProDetails = (code, lang) => {
+        const sev = (window.ProDiagHelper && typeof window.ProDiagHelper.getSeverity === "function")
+            ? window.ProDiagHelper.getSeverity(code)
+            : getFallbackSeverity(code);
+        const tips = (window.ProDiagHelper && typeof window.ProDiagHelper.getChecklist === "function")
+            ? window.ProDiagHelper.getChecklist(code, lang)
+            : getFallbackChecklist(code, lang);
+
+        const sevLabel = sev[lang] || sev.ar || "";
+        const badgeStyle = sev.level === "HIGH"
+            ? "background:rgba(239,68,68,0.20); color:#fca5a5; border:1px solid rgba(239,68,68,0.45);"
+            : sev.level === "MEDIUM"
+                ? "background:rgba(59,130,246,0.20); color:#93c5fd; border:1px solid rgba(59,130,246,0.45);"
+                : "background:rgba(16,185,129,0.16); color:#6ee7b7; border:1px solid rgba(16,185,129,0.35);";
+
+        const tipsHtml = (tips || []).map(tip => `<li style="margin:2px 0;">• ${tip}</li>`).join("");
+
+        return `
+            <span style="margin-inline-start:8px; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; ${badgeStyle}">${sevLabel}</span>
+            <ul style="list-style:none; padding:6px 10px 0 10px; margin:6px 0 0 0; font-size:12px; color:#cbd5e1; border-top:1px dashed rgba(148,163,184,0.2);">${tipsHtml}</ul>
+        `;
+    };
+
+    let customDb = (typeof getCustomDictionary === "function") ? getCustomDictionary() : {};
     let customKeys = Object.keys(customDb).reverse();
+
     customKeys.forEach(code => {
-        let rawDesc = customDb[code][currentLangKey] || customDb[code]['ar'] || "";
+        let rawDesc = (customDb[code] && (customDb[code][currentLangKey] || customDb[code]['ar'])) || "";
         let hasArabic = /[\u0600-\u06FF]/.test(rawDesc);
         let desc = (currentLangKey !== 'ar' && hasArabic && typeof getDtcDescription === "function")
             ? getDtcDescription(code, currentLangKey)
             : (rawDesc || (typeof getDtcDescription === "function" ? getDtcDescription(code, currentLangKey) : code));
 
+        if (!matchesFilter(code, desc)) return;
+
         let badgeText = currentLangKey === 'ar' ? 'مسجّل حديثاً' : (currentLangKey === 'fr' ? 'Enregistré' : 'Saved');
-        html += `<li style="padding:7px 4px; border-bottom:1px solid var(--table-border); background:rgba(0, 255, 102, 0.06);"><span class="badge-new">${badgeText}</span> <strong>${code}:</strong> ${desc}</li>`;
+        html += `
+            <li style="padding:10px 12px; border-radius:8px; border:1px solid rgba(16,185,129,0.35); background:rgba(16,185,129,0.08);">
+                <div>
+                    <span class="badge-new">${badgeText}</span>
+                    <strong style="color:#38bdf8; font-size:14px;">${code}:</strong>
+                    <span style="font-weight:500;">${desc}</span>
+                    ${buildProDetails(code, currentLangKey)}
+                </div>
+            </li>
+        `;
     });
 
-    for (let code in baseDescriptions[currentLangKey]) {
+    const baseSource = (typeof baseDescriptions === "object" && baseDescriptions !== null && baseDescriptions[currentLangKey])
+        ? baseDescriptions[currentLangKey]
+        : ((window.DTC_CATALOG && window.DTC_CATALOG[currentLangKey]) || {});
+
+    for (let code in baseSource) {
         if (!customDb[code]) {
-            html += `<li style="padding:6px 4px; border-bottom:1px solid var(--table-border);"><strong>${code}:</strong> ${baseDescriptions[currentLangKey][code]}</li>`;
+            const desc = baseSource[code];
+            if (!matchesFilter(code, desc)) continue;
+            html += `
+                <li style="padding:10px 12px; border-radius:8px; border:1px solid var(--table-border); background:rgba(15,23,42,0.55);">
+                    <div>
+                        <strong style="color:#38bdf8; font-size:14px;">${code}:</strong>
+                        <span style="font-weight:500;">${desc}</span>
+                        ${buildProDetails(code, currentLangKey)}
+                    </div>
+                </li>
+            `;
         }
     }
+
     html += "</ul>";
     listDiv.innerHTML = html;
 }
+       
 
         function startLiveStream() {
             if (liveDataInterval) clearInterval(liveDataInterval);
