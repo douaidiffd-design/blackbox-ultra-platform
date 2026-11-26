@@ -459,6 +459,19 @@
                 return false;
             }
         }
+        // دوال الحماية: تعقيم النصوص ضد XSS والتحقق من صيغة كود العطل
+function escapeHtml(str) {
+    return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function isValidDtcCode(code) {
+    return /^[PCBU][0-9A-F]{4}$/.test(String(code ?? "").toUpperCase().trim());
+}
 
         function getCustomDictionary() {
             const stored = safeGetStorage(STORAGE_KEY_CODES, null);
@@ -520,42 +533,176 @@ customDb[code] = {
             renderSessionLogsList();
         }
 
-        function renderSessionLogsList() {
-    const container = document.getElementById('dailyLogsContainer');
-    if (!container) return;
-    const logs = getSessionLogs();
-    if (logs.length === 0) {
-        container.innerHTML = `<p style="color:#888; text-align:center; padding:10px;">${currentLang === 'ar' ? 'لا توجد سجلات محفوظة حالياً.' : (currentLang === 'fr' ? 'Aucun journal enregistré.' : 'No saved logs yet.')}</p>`;
-        return;
+       function renderSessionLogsList() {
+    const lang = (typeof currentLang !== "undefined" ? currentLang : "ar");
+
+    const filterTexts = {
+        ar: {
+            searchPlaceholder: "ابحث بالكود (مثل P0340) أو الوصف أو التاريخ...",
+            all: "الكل",
+            confirmed: "فحص مؤكد (Confirmed Fault)",
+            dictionary: "إضافة للقاموس (Added to Dictionary)",
+            clear: "مسح الفلتر",
+            exportCsv: "تصدير CSV",
+            results: (shown, total) => `النتائج: ${shown} من ${total}`
+        },
+        fr: {
+            searchPlaceholder: "Rechercher par code (ex. P0340), description ou date...",
+            all: "Tous",
+            confirmed: "Panne confirmée (Confirmed Fault)",
+            dictionary: "Ajouté au dictionnaire (Added to Dictionary)",
+            clear: "Effacer le filtre",
+            exportCsv: "Exporter CSV",
+            results: (shown, total) => `Résultats : ${shown} sur ${total}`
+        },
+        en: {
+            searchPlaceholder: "Search by code (e.g. P0340), description, or date...",
+            all: "All",
+            confirmed: "Confirmed Fault",
+            dictionary: "Added to Dictionary",
+            clear: "Clear Filter",
+            exportCsv: "Export CSV",
+            results: (shown, total) => `Results: ${shown} of ${total}`
+        }
+    };
+
+    const tFilter = filterTexts[lang] || filterTexts.ar;
+   
+    const searchEl = document.getElementById("sessionLogsSearchInput");
+    const actionEl = document.getElementById("sessionLogsActionFilter");
+    const clearBtn = document.getElementById("clearLogsFilterBtn");
+    const exportBtn = document.getElementById("exportFilteredLogsBtn");
+
+    if (searchEl) {
+        searchEl.placeholder = tFilter.searchPlaceholder;
+        searchEl.dir = (lang === "ar") ? "rtl" : "ltr";
     }
-    let html = '';
-    logs.forEach(item => {
-        const dynDesc = typeof resolveDynamicDesc === "function"
-            ? resolveDynamicDesc(item.code, item.description, currentLang)
-            : item.description;
-        html += `
-            <div class="log-entry">
-                <div>
-                    <strong style="color:var(--accent-color);">${item.code}</strong>: ${dynDesc}
-                    <div style="font-size:11px; color:#888; margin-top:2px;">${item.action} • ${item.time}</div>
-                </div>
-            </div>
-        `;
+
+    if (actionEl && actionEl.options && actionEl.options.length >= 3) {
+        actionEl.options[0].textContent = tFilter.all;
+        actionEl.options[1].textContent = tFilter.confirmed;
+        actionEl.options[2].textContent = tFilter.dictionary;
+    }
+
+    if (clearBtn) {
+        clearBtn.textContent = tFilter.clear;
+    }
+
+    if (exportBtn) {
+        exportBtn.textContent = tFilter.exportCsv;
+    }
+    if (typeof countBadge !== "undefined" && countBadge && typeof filteredLogs !== "undefined" && typeof uniqueLogs !== "undefined") {
+        countBadge.textContent = tFilter.results(filteredLogs.length, uniqueLogs.length);
+    }
+
+    const logsContainer = document.getElementById("sessionLogsList");
+    if (!logsContainer) return;
+
+    const baseLogs = (typeof uniqueLogs !== "undefined" && Array.isArray(uniqueLogs))
+        ? uniqueLogs
+        : ((typeof sessionLogs !== "undefined" && Array.isArray(sessionLogs)) ? sessionLogs : []);
+
+    const searchTerm = (typeof searchInput !== "undefined" && searchInput)
+        ? searchInput.value.trim().toLowerCase()
+        : "";
+
+    const selectedAction = (typeof actionSelect !== "undefined" && actionSelect)
+        ? actionSelect.value
+        : "all";
+
+    const filteredLogs = baseLogs.filter(item => {
+        if (!item) return false;
+        const code = String(item.code || "").toLowerCase();
+        const desc = String(item.description || "").toLowerCase();
+        const action = String(item.action || item.action_type || "").toLowerCase();
+        const time = String(item.time || item.log_time || "").toLowerCase();
+
+        const matchesAction = (selectedAction === "all") || (action === selectedAction.toLowerCase());
+        const matchesSearch = !searchTerm ||
+            code.includes(searchTerm) ||
+            desc.includes(searchTerm) ||
+            action.includes(searchTerm) ||
+            time.includes(searchTerm);
+
+        return matchesAction && matchesSearch;
     });
-    container.innerHTML = html;
+
+    window.lastFilteredSessionLogs = filteredLogs;
+
+    if (typeof countBadge !== "undefined" && countBadge) {
+        countBadge.textContent = tFilter.results(filteredLogs.length, baseLogs.length);
+    }
+
+    let html = "";
+
+    filteredLogs.forEach(item => {
+        const codeText = item.code || "";
+        const dynDesc = item.description || "";
+        const actionText = item.action || item.action_type || "";
+        const timeText = item.time || item.log_time || "";
+
+        html += `<div class="log-item"><strong>${codeText}</strong> - ${dynDesc} <span>(${actionText})</span> <small>${timeText}</small></div>`;
+    });
+const countEl = document.getElementById("logsFilterCount");
+    const shownCount = (typeof filteredLogs !== "undefined" && Array.isArray(filteredLogs))
+        ? filteredLogs.length
+        : 0;
+    const totalCount = (typeof baseLogs !== "undefined" && Array.isArray(baseLogs))
+        ? baseLogs.length
+        : ((typeof uniqueLogs !== "undefined" && Array.isArray(uniqueLogs)) ? uniqueLogs.length : shownCount);
+
+    if (countEl) {
+        countEl.textContent = tFilter.results(shownCount, totalCount);
+    }
+    logsContainer.innerHTML = html;
 }
 
-        function accessAdminPanel() {
-            const adminPass = "2026";
-            const t = translations[currentLang] || translations['ar'];
-            const userInput = prompt(t.adminPrompt);
-            if (userInput === adminPass) {
-                alert(t.adminGranted);
-                openSection('admin');
-            } else if (userInput !== null) {
-                alert(t.adminDenied);
-            }
-        }
+function exportFilteredSessionLogsCSV() {
+    const rows = Array.isArray(window.lastFilteredSessionLogs)
+        ? window.lastFilteredSessionLogs
+        : [];
+
+    if (rows.length === 0) {
+        alert("لا توجد سجلات معروضة لتصديرها.");
+        return;
+    }
+
+    const escapeCSV = (val) => '"' + String(val ?? "").replace(/"/g, '""') + '"';
+    const header = ["Code", "Description", "Action", "Time"].map(escapeCSV).join(",");
+    const lines = rows.map(item =>
+        [
+            item.code || "",
+            item.description || "",
+            item.action || item.action_type || "",
+            item.time || item.log_time || ""
+        ].map(escapeCSV).join(",")
+    );
+
+    const csvContent = "\uFEFF" + [header, ...lines].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `session_logs_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function accessAdminPanel() {
+    const adminPass = "2026";
+    const t = (typeof translations !== "undefined" && (translations[currentLang] || translations["ar"])) || {};
+    const userInput = prompt(t.adminPrompt || "Enter admin password:");
+    if (userInput === adminPass) {
+        if (t.adminGranted) alert(t.adminGranted);
+        if (typeof openSection === "function") openSection("admin");
+    } else if (userInput !== null) {
+        if (t.adminDenied) alert(t.adminDenied);
+    }
+}
+        
 
         const feedbackModal = document.getElementById('feedbackModal');
         const openFeedbackBtn = document.getElementById('openFeedbackBtn');
@@ -1459,11 +1606,50 @@ customDb[code] = {
                         <button class="action-btn" onclick="manualSaveSessionLog()">${t.saveLogBtn}</button>
                         <button class="action-btn clear-btn" onclick="clearAllSavedLogs(); alert('${t.msgClearedLogs}');">${t.clearLogsBtn}</button>
                         <h4 style="color:var(--accent-color); margin-top:16px; font-size:15px;">${t.logsHistoryHeader}</h4>
-                        <div id="dailyLogsContainer" style="max-height:220px; overflow-y:auto; background:var(--bg-color); border:1px solid var(--table-border); border-radius:8px; padding:6px;"></div>
-                    </div>
-                `;
-                setTimeout(renderSessionLogsList, 50);
-            } else if (type === 'ecu') {
+             
+            <div id="logsFilterBar" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center;">
+                <input
+                    type="text"
+                    id="sessionLogsSearchInput"
+                    placeholder="ابحث بالكود (مثل P0340) أو الوصف أو التاريخ..."
+                    oninput="renderSessionLogsList()"
+                    style="flex: 1; min-width: 200px; padding: 8px 12px; border-radius: 6px; border: 1px solid #444; background: #1e1e1e; color: #fff;"
+                />
+                <select
+                    id="sessionLogsActionFilter"
+                    onchange="renderSessionLogsList()"
+                    style="padding: 8px 10px; border-radius: 6px; border: 1px solid #444; background: #1e1e1e; color: #fff;"
+                >
+                    <option value="ALL">الكل</option>
+                    <option value="CONFIRMED">فحص مؤكد (Confirmed Fault)</option>
+                    <option value="DICTIONARY">إضافة للقاموس (Added to Dictionary)</option>
+                </select>
+                <button
+                    type="button"
+                    id="clearLogsFilterBtn"
+                    onclick="clearSessionLogsFilter()"
+                    style="padding: 8px 14px; border-radius: 6px; border: none; background: #374151; color: #fff; cursor: pointer;"
+                >
+                    مسح الفلتر
+                </button>
+                <button
+                    type="button"
+                    id="exportFilteredLogsBtn"
+                    onclick="exportFilteredSessionLogsCSV()"
+                    style="padding: 8px 14px; border-radius: 6px; border: none; background: #0f766e; color: #fff; cursor: pointer;"
+                >
+                    تصدير CSV
+                </button>
+                <span id="logsFilterCount" style="font-size: 13px; color: #cbd5e1; padding: 0 4px;">
+                   <span id="logsFilterCount" style="font-size: 13px; color: #cbd5e1; padding: 0 4px;">
+            ${(typeof currentLang !== "undefined" && currentLang === "fr") ? "Résultats : 0 sur 0" : ((typeof currentLang !== "undefined" && currentLang === "en") ? "Results: 0 of 0" : "النتائج: 0 من 0")}
+        </span>
+                </span>
+            </div>
+            <div id="dailyLogsContainer" style="max-height:240px; overflow-y:auto; margin-top:8px; padding-top:6px; scroll-padding-top:6px;"></div>
+        `;
+        setTimeout(renderSessionLogsList, 50);         
+            }      else if (type === 'ecu') {
                 html += `
                     <div class="tool-card">
                         <h3>💻 ${t.ecuTitle}</h3>
@@ -2025,22 +2211,34 @@ function renderDictionaryList() {
             let statusTitleText = res.success ? t.dtcConfirmedTitle : t.dtcFilteredTitle;
 
             let badgeTag = currentLang === 'ar' ? 'فلترة القلب النابض' : (currentLang === 'fr' ? 'Filtre Cœur' : 'Core Filtered');
-
-            let html = `
-                <div style="background:var(--bg-color); border:2px solid ${statusBadgeColor}; padding:12px; border-radius:8px; margin-bottom:12px; text-align:${textAlign}; font-size:15px;">
-                    <strong style="color:${statusBadgeColor}; font-size:16px;">${statusTitleText}</strong><br><br>
-                    - ${res.reason}<br>
-                    - Value: ${data.inputValue} (Time: ${res.time} ms)
-                </div>
-                <table class="result-table" style="direction: ${dirAlign};">
-                    <tr><th style="text-align: ${textAlign};">${t.status}</th><td style="text-align: ${textAlign};">${res.success ? t.valStatusActive : 'Filtered Noise'}</td></tr>
-                    <tr><th style="text-align: ${textAlign};">${t.code}</th><td style="text-align: ${textAlign};">${data.code}</td></tr>
-                    <tr><th style="text-align: ${textAlign};">${t.desc}</th><td style="text-align: ${textAlign};">${descriptionText} <span class="badge-new">${badgeTag}</span></td></tr>
-                    <tr><th style="text-align: ${textAlign};">${t.severity}</th><td style="text-align: ${textAlign};">${severityText}</td></tr>
-                    <tr><th style="text-align: ${textAlign};">${t.source}</th><td style="text-align: ${textAlign};">${t.valSourceECM}</td></tr>
-                    <tr><th style="text-align: ${textAlign};">${t.power}</th><td style="text-align: ${textAlign};">${t.valPowerOptimal}</td></tr>
-                </table>
-            `;
+// السطر 2041: تجهيز نسخ آمنة من القيم النصية لمنع XSS قبل بناء HTML
+    const safeStatusTitle = escapeHtml(statusTitleText);
+    const safeBadgeTag = escapeHtml(badgeTag);
+    const safeReason = escapeHtml(res?.reason ?? "");
+    const safeInputValue = escapeHtml(data?.inputValue ?? "");
+    const safeTime = escapeHtml(res?.time ?? "");
+    const safeCode = escapeHtml(data?.code ?? "");
+    const safeDesc = escapeHtml(descriptionText);
+    const safeSeverityText = escapeHtml(severityText);
+    const safeDirAlign = dirAlign === "ltr" ? "ltr" : "rtl";
+    const safeTextAlign = textAlign === "left" ? "left" : "right";
+            // السطر 2052: بناء قالب HTML باستخدام المتغيرات الآمنة
+let html = `
+    <div style="background:var(--bg-color); border:2px solid ${statusBadgeColor}; padding:10px; border-radius:8px; margin-bottom:12px;">
+        <strong style="color:${statusBadgeColor}; font-size:16px;">${safeStatusTitle}</strong>
+        - ${safeReason}<br>
+        - Value: ${safeInputValue} (Time: ${safeTime} ms)
+    </div>
+    <table class="result-table" style="direction: ${safeDirAlign};">
+        <tr><th style="text-align: ${safeTextAlign};">${escapeHtml(t.status)}</th><td>${safeStatusTitle}</td></tr>
+        <tr><th style="text-align: ${safeTextAlign};">${escapeHtml(t.code)}</th><td>${safeCode}</td></tr>
+        <tr><th style="text-align: ${safeTextAlign};">${escapeHtml(t.desc)}</th><td>${safeDesc}</td></tr>
+        <tr><th style="text-align: ${safeTextAlign};">${escapeHtml(t.severity)}</th><td>${safeSeverityText}</td></tr>
+        <tr><th style="text-align: ${safeTextAlign};">${escapeHtml(t.source)}</th><td>${safeBadgeTag}</td></tr>
+        <tr><th style="text-align: ${safeTextAlign};">${escapeHtml(t.power)}</th><td>...</td></tr>
+    </table>
+`;
+         
             const box = document.getElementById('resultBox');
             if (box) box.innerHTML = html;
         }
@@ -2092,7 +2290,15 @@ function renderDictionaryList() {
             output.innerText = currentLang === 'ar' ? "✔️ تمت مقارنة الملفات بنجاح: مطابقة بنسبة 98.4%." : (currentLang === 'fr' ? "✔️ Fichiers comparés avec succès : 98.4% de correspondance." : "✔️ Files compared successfully: 98.4% match.");
         }
         const FLASK_API_URL = "http://127.0.0.1:5000/api";
-
+async function validateObdCodeOnServer(code, action = "all") {
+    const response = await fetch(`${FLASK_API_URL}/validate-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, action })
+    });
+    const result = await response.json();
+    return { status: response.status, ...result };
+}
         async function syncWithFlaskServer() {
             const btn = document.getElementById("flaskSyncBtn");
             const originalText = btn ? btn.innerText : "";
@@ -2106,7 +2312,16 @@ function renderDictionaryList() {
                 if (!healthRes.ok) {
                     throw new Error("فشل الاتصال بسيرفر Flask");
                 }
-
+// --- السطر 2315: جلب رمز الفني من الجلسة أو طلبه عند المزامنة ---
+        let techToken = sessionStorage.getItem("smart_ecu_tech_token") || "";
+        if (!techToken) {
+            const enteredToken = window.prompt("أدخل رمز الفني (X-Tech-Token) للمزامنة:");
+            if (!enteredToken || !enteredToken.trim()) {
+                throw new Error("تم إلغاء المزامنة: لم يتم إدخال رمز الفني");
+            }
+            techToken = enteredToken.trim();
+            sessionStorage.setItem("smart_ecu_tech_token", techToken);
+        
                 const customDb = typeof getCustomDictionary === "function" ? getCustomDictionary() : {};
                 const localLogs = typeof getSessionLogs === "function" ? getSessionLogs() : [];
 
@@ -2126,7 +2341,10 @@ function renderDictionaryList() {
 
                 await fetch(`${FLASK_API_URL}/sync-all`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                   headers: {
+    "Content-Type": "application/json",
+    "X-Tech-Token": techToken
+}, 
                     body: JSON.stringify({
                         codes: codesPayload,
                         logs: logsPayload
@@ -2147,15 +2365,27 @@ function renderDictionaryList() {
                             };
                         }
                     });
-                    if (typeof memoryFallbackCodes !== "undefined") {
-                        memoryFallbackCodes = mergedDb;
-                    }
-                    if (typeof safeSetStorage === "function" && typeof STORAGE_KEY_CODES !== "undefined") {
-                        safeSetStorage(STORAGE_KEY_CODES, mergedDb);
-                    } else {
-                        localStorage.setItem("ecu_custom_learned_codes_v2", JSON.stringify(mergedDb));
-                    }
-                }
+                    // السطر 2163: إغلاق الشرط السابق ثم بدء حفظ قاعدة البيانات المدمجة بأمان
+}
+const mergedDb = Object.assign(
+  {},
+  typeof customDb === "object" && customDb ? customDb : {},
+  typeof serverCodesMap === "object" && serverCodesMap ? serverCodesMap : {}
+);
+if (mergedDb && typeof mergedDb === "object") {
+    if (typeof memoryFallbackCodes !== "undefined") {
+        memoryFallbackCodes = mergedDb;
+    }
+    if (typeof safeSetStorage === "function" && typeof STORAGE_KEY_CODES !== "undefined") {
+        safeSetStorage(STORAGE_KEY_CODES, mergedDb);
+    } else {
+        try {
+            localStorage.setItem("ecu_custom_learned_codes_v2", JSON.stringify(mergedDb));
+        } catch (e) {
+            console.warn("Storage fallback error:", e);
+        }
+    }
+}
 
                 const logsRes = await fetch(`${FLASK_API_URL}/logs`);
                 if (logsRes.ok) {
@@ -2166,6 +2396,13 @@ function renderDictionaryList() {
                         action: row.action_type || "db_sync",
                         time: row.log_time || row.created_at || new Date().toLocaleString()
                     }));
+                    const seenLogKeys = new Set();
+            const uniqueFormattedLogs = formattedLogs.filter((item) => {
+                const key = `${item.code}|${item.action}|${item.time}|${item.description}`;
+                if (seenLogKeys.has(key)) return false;
+                seenLogKeys.add(key);
+                return true;
+            });
                     if (typeof memoryFallbackLogs !== "undefined") {
                         memoryFallbackLogs = formattedLogs;
                     }
@@ -2182,18 +2419,18 @@ function renderDictionaryList() {
                 if (typeof renderSessionLogsList === "function") {
                     renderSessionLogsList();
                 }
-
-                alert("✔️ تمت المزامنة بنجاح مع سيرفر Flask وقاعدة بيانات MySQL!");
-            } catch (err) {
-                console.error("Flask Sync Error:", err);
-                alert("⚠️ تعذر الاتصال بسيرفر Flask على المنفذ 5000. تأكد من تشغيل app.py أولاً.");
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerText = originalText || "🔄 مزامنة Flask";
-                }
+}
+        } catch (err) {
+            console.error("Flask Sync Error:", err);
+            alert("⚠️ تعذر الاتصال بسيرفر Flask على المنفذ 5000. تأكد من تشغيل Flask.");
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = originalText || "🔄 مزامنة Flask";
             }
         }
+    }
+               
         async function autoPushCodeToFlask(codeObj) {
     if (!codeObj || !codeObj.code) return;
     const baseUrl = (typeof FLASK_API_URL !== "undefined")
