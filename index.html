@@ -900,48 +900,57 @@ function accessAdminPanel() {
             }
         };
 
-        function generateAutoDescription(code, lang) {
-            let prefix = code.charAt(0).toUpperCase();
-            let typeAr = "عطل محرك أو ناقل حركة";
-            let typeFr = "Défaut Groupe Motopropulseur";
-            let typeEn = "Powertrain Fault";
+       function generateAutoDescription(code, lang) {
+    code = String(code || "").toUpperCase().trim();
+    let prefix = code.charAt(0);
+    let typeAr = "عطل محرك أو ناقل حركة";
+    let typeFr = "Défaut Groupe Motopropulseur";
+    let typeEn = "Powertrain Fault";
 
-            if (prefix === 'C') {
-                typeAr = "عطل في هيكل السيارة / ABS";
-                typeFr = "Défaut Châssis / ABS";
-                typeEn = "Chassis Fault";
-            } else if (prefix === 'B') {
-                typeAr = "عطل في جسم السيارة";
-                typeFr = "Défaut Carrosserie";
-                typeEn = "Body Fault";
-            } else if (prefix === 'U') {
-                typeAr = "عطل في شبكة الاتصال CAN-Bus";
-                typeFr = "Défaut Réseau CAN-Bus";
-                typeEn = "Network Fault";
-            }
+    if (prefix === 'C') {
+        typeAr = "عطل في هيكل السيارة / ABS";
+        typeFr = "Défaut Châssis / ABS";
+        typeEn = "Chassis Fault";
+    } else if (prefix === 'B') {
+        typeAr = "عطل في جسم السيارة";
+        typeFr = "Défaut Carrosserie";
+        typeEn = "Body Fault";
+    } else if (prefix === 'U') {
+        typeAr = "عطل في شبكة الاتصال CAN-Bus";
+        typeFr = "Défaut Réseau CAN-Bus";
+        typeEn = "Network Fault";
+    }
 
-            let descAr = `${typeAr} (تم توليده تلقائياً للكود ${code})`;
-            let descFr = `${typeFr} (Auto-détecté DTC ${code})`;
-            let descEn = `${typeEn} (Auto-learned DTC ${code})`;
+    if (lang === 'fr') return `${typeFr} (Auto-détecté DTC ${code})`;
+    if (lang === 'en') return `${typeEn} (Auto-learned DTC ${code})`;
+    return `${typeAr} (تم توليده تلقائياً للكود ${code})`;
+}
+function getDtcDescription(code, lang) {
+    code = String(code || "").toUpperCase().trim();
+    const targetLang = (lang === 'fr' || lang === 'en' || lang === 'ar') ? lang : 'ar';
 
-            saveCustomCode(code, descAr, descFr, descEn);
-            return (lang === 'fr' ? descFr : (lang === 'en' ? descEn : descAr));
+    if (typeof baseDescriptions !== "undefined" && baseDescriptions[targetLang] && baseDescriptions[targetLang][code]) {
+        return baseDescriptions[targetLang][code];
+    }
+
+    const customDb = (typeof getCustomDictionary === "function") ? getCustomDictionary() : {};
+    if (customDb[code]) {
+        const entry = customDb[code];
+        const candidate = entry[targetLang];
+        const hasArabicChars = /[\u0600-\u06FF]/.test(String(candidate || ""));
+        if (candidate && (targetLang === 'ar' || !hasArabicChars)) {
+            return candidate;
         }
+    }
 
-        function getDtcDescription(code, lang) {
-            code = code.toUpperCase().trim();
-            if (baseDescriptions[lang] && baseDescriptions[lang][code]) {
-                return baseDescriptions[lang][code];
-            }
-            if (baseDescriptions['ar'][code]) {
-                return baseDescriptions['ar'][code];
-            }
-            let customDb = getCustomDictionary();
-            if (customDb[code]) {
-                return customDb[code][lang] || customDb[code]['ar'];
-            }
-            return generateAutoDescription(code, lang);
-        }
+    if (typeof baseDescriptions !== "undefined" && baseDescriptions['ar'] && baseDescriptions['ar'][code] && targetLang === 'ar') {
+        return baseDescriptions['ar'][code];
+    }
+
+    return generateAutoDescription(code, targetLang);
+}
+    
+
 
         const translations = {
             ar: {
@@ -1917,7 +1926,7 @@ function accessAdminPanel() {
             resBox.innerHTML = `<div style="background:var(--bg-color); border:1px solid var(--accent-color); padding:10px; border-radius:8px; font-size:14px;"><strong>✔️ Root Cause [${val}]:</strong><br>Fuel pressure fluctuation or intake air leak.</div>`;
         }
 
-        function addNewCodeToDictionary() {
+        async function addNewCodeToDictionary() {
             const dtcInput = document.getElementById('newDtc');
             const descInput = document.getElementById('newDesc');
             if (!dtcInput) return;
@@ -1940,22 +1949,31 @@ function accessAdminPanel() {
             }
 
             renderDictionaryList();
-            if (typeof autoPushCodeToFlask === "function") {
-    const finalAr = manualDesc || (typeof resolvedDesc !== "undefined" ? resolvedDesc : "");
-    const finalFr = manualDesc || (typeof resolvedFr !== "undefined" ? resolvedFr : finalAr);
-    const finalEn = manualDesc || (typeof resolvedEn !== "undefined" ? resolvedEn : finalAr);
-    autoPushCodeToFlask({
-        code: dtc,
-        desc_ar: finalAr,
-        desc_fr: finalFr,
-        desc_en: finalEn
-    });
-}
+           let flaskSynced = false;
+        if (typeof autoPushCodeToFlask === "function") {
+            const finalAr = manualDesc || (typeof resolvedDesc !== "undefined" ? resolvedDesc : "");
+            const finalFr = manualDesc || (typeof resolvedFr !== "undefined" ? resolvedFr : "");
+            const finalEn = manualDesc || (typeof resolvedEn !== "undefined" ? resolvedEn : "");
+            const safeDescAr = (finalAr && finalAr.trim()) ? finalAr.trim() : `كود عطل ${dtc}`;
+            flaskSynced = await autoPushCodeToFlask({
+                code: dtc,
+                desc_ar: finalAr,
+                desc_fr: finalFr,
+                desc_en: finalEn
+            });
+        }
 
-            let successMsg = currentLang === 'ar' 
-                ? `✔️ تم حفظ الكود (${dtc}) وتحديث السجل والقاموس بنجاح!` 
-                : (currentLang === 'fr' ? `✔️ Code ${dtc} enregistré et ajouté au journal!` : `✔️ Code ${dtc} saved and logged successfully!`);
-
+        let successMsg = currentLang === 'ar'
+            ? (flaskSynced
+                ? `تم حفظ الكود (${dtc}) بنجاح وتحديث السجل والقاموس ومزامنته مع الخادم!`
+                : `تم حفظ الكود (${dtc}) محلياً وتحديث القاموس، لكن تعذرت مزامنته مع الخادم (تحقق من رمز الحماية أو حالة 401).`)
+            : (currentLang === 'fr'
+                ? (flaskSynced
+                    ? `Code ${dtc} enregistré et synchronisé avec le serveur !`
+                    : `Code ${dtc} enregistré localement, mais la synchronisation serveur a échoué (vérifiez le jeton ou 401).`)
+                : (flaskSynced
+                    ? `Code ${dtc} saved and synced with server!`
+                    : `Code ${dtc} saved locally, but server sync failed (check token or 401).`));
             alert(successMsg);
             dtcInput.value = "";
             if (descInput) descInput.value = "";
@@ -2290,7 +2308,42 @@ let html = `
             }
             output.innerText = currentLang === 'ar' ? "✔️ تمت مقارنة الملفات بنجاح: مطابقة بنسبة 98.4%." : (currentLang === 'fr' ? "✔️ Fichiers comparés avec succès : 98.4% de correspondance." : "✔️ Files compared successfully: 98.4% match.");
         }
-        const FLASK_API_URL = "http://127.0.0.1:5000/api";
+       const FLASK_API_URL = "http://127.0.0.1:5000/api";
+
+async function secureApiFetch(url, options = {}) {
+    const method = (options.method || "GET").toUpperCase();
+    const isWriteOrDelete = method === "POST" || method === "PUT" || method === "DELETE";
+
+    const headers = {
+        ...(options.headers || {})
+    };
+
+    if (isWriteOrDelete) {
+        let token = (sessionStorage.getItem("smart_ecu_tech_token") || "").trim();
+        if (!token) {
+            const entered = window.prompt("أدخل رمز الحماية التقني (X-Tech-Token):");
+            if (!entered || !entered.trim()) {
+                throw new Error("تم إلغاء العملية: لم يتم إدخال رمز الحماية.");
+            }
+            token = entered.trim();
+            sessionStorage.setItem("smart_ecu_tech_token", token);
+        }
+        headers["X-Tech-Token"] = token;
+    }
+
+    const response = await fetch(url, {
+        ...options,
+        headers
+    });
+
+    if (response.status === 401) {
+        sessionStorage.removeItem("smart_ecu_tech_token");
+        window.alert("رمز الحماية غير صحيح أو غير مضبوط على الخادم. تم مسح الرمز، أعد المحاولة لإدخال الرمز الصحيح.");
+    }
+
+    return response;
+}
+
 async function validateObdCodeOnServer(code, action = "all") {
     const response = await fetch(`${FLASK_API_URL}/validate-code`, {
         method: "POST",
@@ -2300,158 +2353,161 @@ async function validateObdCodeOnServer(code, action = "all") {
     const result = await response.json();
     return { status: response.status, ...result };
 }
-        async function syncWithFlaskServer() {
-            const btn = document.getElementById("flaskSyncBtn");
-            const originalText = btn ? btn.innerText : "";
-            if (btn) {
-                btn.disabled = true;
-                btn.innerText = "⏳ جاري المزامنة...";
-            }
 
-            try {
-                const healthRes = await fetch(`${FLASK_API_URL}/health`);
-                if (!healthRes.ok) {
-                    throw new Error("فشل الاتصال بسيرفر Flask");
-                }
-// --- السطر 2315: جلب رمز الفني من الجلسة أو طلبه عند المزامنة ---
-        let techToken = sessionStorage.getItem("smart_ecu_tech_token") || "";
-        if (!techToken) {
-            const enteredToken = window.prompt("أدخل رمز الفني (X-Tech-Token) للمزامنة:");
-            if (!enteredToken || !enteredToken.trim()) {
-                throw new Error("تم إلغاء المزامنة: لم يتم إدخال رمز الفني");
-            }
-            techToken = enteredToken.trim();
-            sessionStorage.setItem("smart_ecu_tech_token", techToken);
-        
-                const customDb = typeof getCustomDictionary === "function" ? getCustomDictionary() : {};
-                const localLogs = typeof getSessionLogs === "function" ? getSessionLogs() : [];
-
-                const codesPayload = Object.keys(customDb).map(code => ({
-                    code: code,
-                    desc_ar: customDb[code].ar || "",
-                    desc_fr: customDb[code].fr || customDb[code].ar || "",
-                    desc_en: customDb[code].en || customDb[code].ar || ""
-                }));
-
-                const logsPayload = localLogs.map(item => ({
-                    code: item.code || "SYSTEM",
-                    description: item.description || "",
-                    action_type: item.action || "sync",
-                    log_time: item.time || new Date().toLocaleString()
-                }));
-
-                await fetch(`${FLASK_API_URL}/sync-all`, {
-                    method: "POST",
-                   headers: {
-    "Content-Type": "application/json",
-    "X-Tech-Token": techToken
-}, 
-                    body: JSON.stringify({
-                        codes: codesPayload,
-                        logs: logsPayload
-                    })
-                });
-
-                const codesRes = await fetch(`${FLASK_API_URL}/codes`);
-                if (codesRes.ok) {
-                    const serverCodes = await codesRes.json();
-                    const mergedDb = typeof getCustomDictionary === "function" ? getCustomDictionary() : {};
-                    serverCodes.forEach(row => {
-                        if (row.code) {
-                            mergedDb[row.code.toUpperCase()] = {
-                                ar: row.desc_ar || row.code,
-                                fr: row.desc_fr || row.desc_ar || row.code,
-                                en: row.desc_en || row.desc_ar || row.code,
-                                timestamp: row.created_at || new Date().toLocaleString()
-                            };
-                        }
-                    });
-                    // السطر 2163: إغلاق الشرط السابق ثم بدء حفظ قاعدة البيانات المدمجة بأمان
-}
-const mergedDb = Object.assign(
-  {},
-  typeof customDb === "object" && customDb ? customDb : {},
-  typeof serverCodesMap === "object" && serverCodesMap ? serverCodesMap : {}
-);
-if (mergedDb && typeof mergedDb === "object") {
-    if (typeof memoryFallbackCodes !== "undefined") {
-        memoryFallbackCodes = mergedDb;
+async function syncWithFlaskServer() {
+    const btn = document.getElementById("flaskSyncBtn");
+    const originalText = btn ? btn.innerText : "";
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "⏳ جاري المزامنة...";
     }
-    if (typeof safeSetStorage === "function" && typeof STORAGE_KEY_CODES !== "undefined") {
-        safeSetStorage(STORAGE_KEY_CODES, mergedDb);
-    } else {
-        try {
-            localStorage.setItem("ecu_custom_learned_codes_v2", JSON.stringify(mergedDb));
-        } catch (e) {
-            console.warn("Storage fallback error:", e);
+
+    try {
+        const healthRes = await fetch(`${FLASK_API_URL}/health`);
+        if (!healthRes.ok) {
+            throw new Error("فشل الاتصال بسيرفر Flask");
         }
-    }
-}
 
-                const logsRes = await fetch(`${FLASK_API_URL}/logs`);
-                if (logsRes.ok) {
-                    const serverLogs = await logsRes.json();
-                    const formattedLogs = serverLogs.map(row => ({
-                        code: row.code || "SYSTEM",
-                        description: row.description || "",
-                        action: row.action_type || "db_sync",
-                        time: row.log_time || row.created_at || new Date().toLocaleString()
-                    }));
-                    const seenLogKeys = new Set();
+        const customDb = typeof getCustomDictionary === "function" ? getCustomDictionary() : {};
+        const localLogs = typeof getSessionLogs === "function" ? getSessionLogs() : [];
+
+        const codesPayload = Object.keys(customDb).map(code => ({
+            code: code,
+            desc_ar: customDb[code].ar || "",
+            desc_fr: customDb[code].fr || customDb[code].ar || "",
+            desc_en: customDb[code].en || customDb[code].ar || ""
+        }));
+
+        const logsPayload = localLogs.map(item => ({
+            code: item.code || "SYSTEM",
+            description: item.description || "",
+            action_type: item.action || "sync",
+            log_time: item.time || new Date().toLocaleString()
+        }));
+
+        const syncRes = await secureApiFetch(`${FLASK_API_URL}/sync-all`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                codes: codesPayload,
+                logs: logsPayload
+            })
+        });
+
+        if (!syncRes.ok) {
+            const errData = await syncRes.json().catch(() => ({}));
+            throw new Error(errData.error || `فشلت المزامنة (HTTP ${syncRes.status})`);
+        }
+
+        const codesRes = await fetch(`${FLASK_API_URL}/codes`);
+        if (codesRes.ok) {
+            const serverCodes = await codesRes.json();
+            const mergedDb = typeof getCustomDictionary === "function" ? { ...getCustomDictionary() } : {};
+            if (Array.isArray(serverCodes)) {
+                serverCodes.forEach(row => {
+                    if (row && row.code) {
+                        mergedDb[row.code.toUpperCase()] = {
+                            ar: row.desc_ar || row.code,
+                            fr: row.desc_fr || row.desc_ar || row.code,
+                            en: row.desc_en || row.desc_ar || row.code,
+                            timestamp: row.created_at || new Date().toLocaleString()
+                        };
+                    }
+                });
+            }
+
+            if (typeof memoryFallbackCodes !== "undefined") {
+                memoryFallbackCodes = mergedDb;
+            }
+            if (typeof safeSetStorage === "function" && typeof STORAGE_KEY_CODES !== "undefined") {
+                safeSetStorage(STORAGE_KEY_CODES, mergedDb);
+            } else {
+                try {
+                    localStorage.setItem("ecu_custom_learned_codes_v2", JSON.stringify(mergedDb));
+                } catch (e) {
+                    console.warn("Storage fallback error:", e);
+                }
+            }
+        }
+
+        const logsRes = await fetch(`${FLASK_API_URL}/logs`);
+        if (logsRes.ok) {
+            const serverLogs = await logsRes.json();
+            const formattedLogs = Array.isArray(serverLogs)
+                ? serverLogs.map(row => ({
+                    code: row.code || "SYSTEM",
+                    description: row.description || "",
+                    action: row.action_type || "db_sync",
+                    time: row.log_time || row.created_at || new Date().toLocaleString()
+                }))
+                : [];
+
+            const seenLogKeys = new Set();
             const uniqueFormattedLogs = formattedLogs.filter((item) => {
                 const key = `${item.code}|${item.action}|${item.time}|${item.description}`;
                 if (seenLogKeys.has(key)) return false;
                 seenLogKeys.add(key);
                 return true;
             });
-                    if (typeof memoryFallbackLogs !== "undefined") {
-                        memoryFallbackLogs = formattedLogs;
-                    }
-                    if (typeof safeSetStorage === "function" && typeof STORAGE_KEY_LOGS !== "undefined") {
-                        safeSetStorage(STORAGE_KEY_LOGS, formattedLogs);
-                    } else {
-                        localStorage.setItem("ecu_daily_session_logs_v2", JSON.stringify(formattedLogs));
-                    }
-                }
 
-                if (typeof renderDictionaryList === "function") {
-                    renderDictionaryList();
+            if (typeof memoryFallbackLogs !== "undefined") {
+                memoryFallbackLogs = uniqueFormattedLogs;
+            }
+            if (typeof safeSetStorage === "function" && typeof STORAGE_KEY_LOGS !== "undefined") {
+                safeSetStorage(STORAGE_KEY_LOGS, uniqueFormattedLogs);
+            } else {
+                try {
+                    localStorage.setItem("ecu_daily_session_logs_v2", JSON.stringify(uniqueFormattedLogs));
+                } catch (e) {
+                    console.warn("Logs storage fallback error:", e);
                 }
-                if (typeof renderSessionLogsList === "function") {
-                    renderSessionLogsList();
-                }
-}
-        } catch (err) {
-            console.error("Flask Sync Error:", err);
-            alert("⚠️ تعذر الاتصال بسيرفر Flask على المنفذ 5000. تأكد من تشغيل Flask.");
-        } finally {
-            if (btn) {
-                btn.disabled = false;
-                btn.innerText = originalText || "🔄 مزامنة Flask";
             }
         }
+
+        if (typeof renderDictionaryList === "function") {
+            renderDictionaryList();
+        }
+        if (typeof renderSessionLogsList === "function") {
+            renderSessionLogsList();
+        }
+    } catch (err) {
+        console.error("Flask Sync Error:", err);
+        alert(`⚠️ ${err.message || "تعذر الاتصال بسيرفر Flask على المنفذ 5000. تأكد من تشغيل Flask."}`);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = originalText || "🔄 مزامنة Flask";
+        }
     }
-               
-        async function autoPushCodeToFlask(codeObj) {
-    if (!codeObj || !codeObj.code) return;
+}
+async function autoPushCodeToFlask(codeObj) {
+    if (!codeObj || !codeObj.code) return false;
     const baseUrl = (typeof FLASK_API_URL !== "undefined")
         ? FLASK_API_URL
         : "http://127.0.0.1:5000/api";
     try {
-        await fetch(`${baseUrl}/codes`, {
+        const res = await secureApiFetch(`${baseUrl}/codes`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 code: codeObj.code,
-                desc_ar: codeObj.desc_ar || codeObj.ar || "",
-                desc_fr: codeObj.desc_fr || codeObj.fr || codeObj.desc_ar || "",
-                desc_en: codeObj.desc_en || codeObj.en || codeObj.desc_ar || ""
+                desc_ar: codeObj.desc_ar || codeObj.ar || codeObj.description || codeObj.desc || codeObj.title || `كود عطل ${codeObj.code}`,
+                desc_fr: codeObj.desc_fr || codeObj.fr || codeObj.desc_ar || codeObj.ar || codeObj.description || "",
+                desc_en: codeObj.desc_en || codeObj.en || codeObj.desc_ar || codeObj.ar || codeObj.description || ""
             })
         });
+        if (!res || !res.ok) {
+            const errText = res ? await res.text() : "no response";
+            console.warn("تفاصيل رفض Flask:", res ? res.status : "", errText);
+            return false;
+        }
+        return true;
     } catch (err) {
-        console.warn("تم تخطي الإرسال التلقائي إلى Flask (تعذر الوصول للسيرفر):", err);
+        console.warn("تم تخطي الإرسال التلقائي إلى Flask:", err);
+        return false;
     }
 }
+
     </script>
     <script type="module">
         // 1. استيراد مكتبات Firebase من شبكة CDN الرسمية
@@ -2482,7 +2538,7 @@ if (mergedDb && typeof mergedDb === "object") {
                 timestamp: new Date().toISOString()
             };
             set(codeRef, dataToSave).then(() => {
-                console.log("تم حفظ الكود وتزامنه سحابياً بنجاح!");
+               console.log("تم حفظ الكود في قاعدة البيانات السحابية بنجاح");
             }).catch((error) => {
                 console.error("خطأ في المزامنة:", error);
             });
