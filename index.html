@@ -263,6 +263,90 @@
         .result-table td { color: var(--text-color); }
         .badge-new { background: #00ff66; color: #000; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 4px; margin-right: 4px; }
         .log-entry { padding: 8px; border-bottom: 1px solid var(--table-border); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        
+       .auto-vin-panel {
+  border: 1px solid rgba(120, 140, 180, 0.35);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  background: rgba(20, 28, 42, 0.65);
+}
+
+.auto-vin-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.auto-vin-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vin-input-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.vin-input-row input {
+  flex: 1;
+  min-width: 220px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  font-family: monospace;
+  text-transform: uppercase;
+}
+
+.vin-status-banner {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background: rgba(14, 165, 233, 0.14);
+  border-inline-start: 4px solid #0ea5e9;
+  font-size: 0.95rem;
+}
+
+.vehicle-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.info-box {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.dtc-auto-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dtc-auto-table th,
+.dtc-auto-table td {
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 8px 10px;
+  text-align: start;
+}
     </style>
 </head>
 <body>
@@ -359,6 +443,11 @@
                 <div class="icon">📜</div>
                 <div class="title" id="lbl-history">سجل تاريخ السيارة برقم VIN</div>
             </div>
+            <div class="app-card card-auto-vin" id="cardAutoVin" onclick="openAutoVinSection()">
+  <div class="icon">🚗</div>
+
+  <div class="title" id="lbl_auto_vin">التشخيص الأوتوماتيكي (VIN / OBD)</div>
+</div>
             <div class="app-card card-print" onclick="openSection('print')">
                 <div class="icon">🖨️</div>
                 <div class="title" id="lbl-print">طباعة أدلة الإصلاح الفورية</div>
@@ -399,7 +488,65 @@
 
         <div id="sectionContent" style="display: none;"></div>
     </div>
+    <!-- السطر 490: بعد إغلاق mainContainer مباشرة وقبل <script> -->
+<section id="autoVinDiagnosticSection" class="auto-vin-panel" dir="auto" style="display: none; background: #1e293b; padding: 20px; border-radius: 12px; margin-top: 20px; color: #fff;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+    <h3 id="vinPanelTitle" style="margin: 0; color: #38bdf8;">التشخيص الأوتوماتيكي حسب رقم الشاسيه (VIN / OBD)</h3>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <button id="btnConnectSerial" type="button" onclick="if(typeof connectSerialPort === 'function') connectSerialPort();" style="background: #0284c7; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">اتصال تسلسلي (Serial)</button>
+      <button id="btnScanBackend" type="button" onclick="if(typeof scanBackendVin === 'function') scanBackendVin();" style="background: #7c3aed; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">فحص عبر الخادم</button>
+      <button id="btnDemoScan" type="button" onclick="if(typeof runDemoVinScan === 'function') runDemoVinScan();" style="background: #d97706; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">تجربة فحص (Demo)</button>
+      <button type="button" onclick="closeAutoVinSection()" style="background: #ef4444; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">إغلاق والعودة</button>
+    </div>
+  </div>
 
+  <div style="margin-bottom: 16px;">
+    <label id="vinInputLabel" for="autoVinInput" style="display: block; margin-bottom: 6px; color: #cbd5e1;">رقم الشاسيه (VIN)</label>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <input type="text" id="autoVinInput" maxlength="17" placeholder="WVWZZZ1KZ9W123456" style="flex: 1; min-width: 220px; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; text-transform: uppercase;">
+      <button id="btnAnalyzeVin" type="button" onclick="if(typeof decodeAndScanVin === 'function') decodeAndScanVin();" style="background: #10b981; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold;">تحليل وفحص VIN</button>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 18px; background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155;">
+    <div><strong id="lblManufacturer">الشركة المصنعة:</strong> <span id="valManufacturer">-</span></div>
+    <div><strong id="lblModelYear">سنة الطراز:</strong> <span id="valModelYear">-</span></div>
+    <div><strong id="lblRegion">المنطقة:</strong> <span id="valRegion">-</span></div>
+    <div><strong id="lblEcus">وحدات التحكم (ECUs):</strong> <span id="valEcus">-</span></div>
+  </div>
+
+  <h4 id="dtcResultsTitle" style="margin: 0 0 10px 0; color: #38bdf8;">أكواد الأعطال المكتشفة (DTCs)</h4>
+  <div id="autoVinResultBox" style="overflow-x: auto; background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155;">
+    <table style="width: 100%; border-collapse: collapse; text-align: start;">
+      <thead>
+        <tr style="border-bottom: 1px solid #334155; color: #94a3b8;">
+          <th id="thCode" style="padding: 8px;">الكود</th>
+          <th id="thSystem" style="padding: 8px;">النظام</th>
+          <th id="thBrand" style="padding: 8px;">الماركة</th>
+          <th id="thDesc" style="padding: 8px;">الوصف</th>
+        </tr>
+      </thead>
+      <tbody id="autoVinDtcBody"></tbody>
+    </table>
+  </div>
+</section>
+<script>
+  function openAutoVinSection() {
+    const menu = document.getElementById("dashboardMenu");
+    const section = document.getElementById("autoVinDiagnosticSection");
+    if (menu) menu.style.display = "none";
+    if (section) {
+      section.style.setProperty("display", "block", "important");
+    }
+  }
+
+  function closeAutoVinSection() {
+    const menu = document.getElementById("dashboardMenu");
+    const section = document.getElementById("autoVinDiagnosticSection");
+    if (section) section.style.setProperty("display", "none", "important");
+    if (menu) menu.style.display = "";
+  }
+</script>
     <div id="feedbackWidgetContainer">
         <button id="openFeedbackBtn" style="position: fixed; bottom: 12px; left: 12px; z-index: 9999; background: #2563eb; color: #fff; border: none; padding: 9px 14px; border-radius: 30px; cursor: pointer; font-family: Tahoma; font-size: 13px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.4);">
             💬 تقييم المنصة والملاحظات
@@ -949,6 +1096,554 @@ function getDtcDescription(code, lang) {
 
     return generateAutoDescription(code, targetLang);
 }
+(() => {
+  const WMI_MANUFACTURERS = {
+    JTD: { key: "toyota", ar: "تويوتا (Toyota)", fr: "Toyota", en: "Toyota", region: { ar: "اليابان", fr: "Japon", en: "Japan" }, ecus: ["ECM", "TCM", "ABS/VSC", "SRS", "Hybrid/HV"] },
+    JHM: { key: "honda", ar: "هوندا (Honda)", fr: "Honda", en: "Honda", region: { ar: "اليابان", fr: "Japon", en: "Japan" }, ecus: ["PGM-FI", "AT/CVT", "ABS/VSA", "SRS", "BCM"] },
+    JN1: { key: "nissan", ar: "نيسان (Nissan)", fr: "Nissan", en: "Nissan", region: { ar: "اليابان", fr: "Japon", en: "Japan" }, ecus: ["ECM", "CVT/TCM", "ABS/VDC", "Airbag", "IPDM"] },
+    KNA: { key: "kia", ar: "كيا (Kia)", fr: "Kia", en: "Kia", region: { ar: "كوريا الجنوبية", fr: "Corée du Sud", en: "South Korea" }, ecus: ["ECM", "TCU", "ABS/ESC", "SRS", "BCM"] },
+    KMH: { key: "hyundai", ar: "هيونداي (Hyundai)", fr: "Hyundai", en: "Hyundai", region: { ar: "كوريا الجنوبية", fr: "Corée du Sud", en: "South Korea" }, ecus: ["ECM", "TCU", "ABS/ESP", "ACU", "BCM"] },
+    VF1: { key: "renault", ar: "رينو (Renault)", fr: "Renault", en: "Renault", region: { ar: "فرنسا / أوروبا", fr: "France / Europe", en: "France / Europe" }, ecus: ["Injection (ECM)", "UCH/BCM", "ABS/ESP", "Airbag", "UPC"] },
+    VF3: { key: "peugeot", ar: "بيجو (Peugeot)", fr: "Peugeot", en: "Peugeot", region: { ar: "فرنسا", fr: "France", en: "France" }, ecus: ["CMM/ECM", "BSI", "ABS/ESP", "Airbag", "BSM"] },
+    WVW: { key: "volkswagen", ar: "فولكس فاجن (Volkswagen)", fr: "Volkswagen", en: "Volkswagen", region: { ar: "ألمانيا", fr: "Allemagne", en: "Germany" }, ecus: ["Engine (01)", "Auto Trans (02)", "ABS Brakes (03)", "Airbag (15)", "CAN Gateway (19)"] },
+    WAU: { key: "audi", ar: "أودي (Audi)", fr: "Audi", en: "Audi", region: { ar: "ألمانيا", fr: "Allemagne", en: "Germany" }, ecus: ["Engine (01)", "S-Tronic/CVT (02)", "ABS/ESP (03)", "Airbag (15)", "Gateway (19)"] },
+    WBA: { key: "bmw", ar: "بي إم دبليو (BMW)", fr: "BMW", en: "BMW", region: { ar: "ألمانيا", fr: "Allemagne", en: "Germany" }, ecus: ["DME/DDE", "EGS", "DSC/ABS", "ACSM", "FRM/BDC"] },
+    WDB: { key: "mercedes", ar: "مرسيدس بنز (Mercedes-Benz)", fr: "Mercedes-Benz", en: "Mercedes-Benz", region: { ar: "ألمانيا", fr: "Allemagne", en: "Germany" }, ecus: ["ME/CDI", "VGS/TCM", "ESP/ABS", "SRS", "SAM"] },
+    LVV: { key: "chery", ar: "شيري (Chery)", fr: "Chery", en: "Chery", region: { ar: "الصين", fr: "Chine", en: "China" }, ecus: ["EMS", "TCU", "ABS/ESP", "SRS", "BCM"] }
+  };
+
+  const VIN_YEAR_MAP = {
+    A: 2010, B: 2011, C: 2012, D: 2013, E: 2014, F: 2015, G: 2016, H: 2017,
+    J: 2018, K: 2019, L: 2020, M: 2021, N: 2022, P: 2023, R: 2024, S: 2025,
+    T: 2026, V: 2027, W: 2028, X: 2029, Y: 2030,
+    "1": 2001, "2": 2002, "3": 2003, "4": 2004, "5": 2005, "6": 2006, "7": 2007, "8": 2008, "9": 2009
+  };
+
+  const BRAND_SPECIFIC_DTC = {
+    volkswagen: {
+      P0299: {
+        ar: "انخفاض ضغط شاحن التوربو (VAG) — فحص صمام N75، ليّات الشحن، أو ذراع ويستجيت التوربو",
+        fr: "Pression de suralimentation basse (VAG) — vérifier électrovanne N75, durites turbo ou wastegate",
+        en: "Turbocharger Underboost (VAG) — check N75 valve, charge hoses, or turbo wastegate actuator"
+      },
+      U0100: {
+        ar: "فقدان الاتصال بوحدة المحرك عبر شبكة CAN Powertrain في مجموعة VAG — فحص خط CAN-H / CAN-L والـ Gateway",
+        fr: "Perte de communication calculateur moteur sur bus CAN VAG — vérifier lignes CAN et Gateway (19)",
+        en: "Lost Communication with ECM on VAG Powertrain CAN bus — inspect CAN bus lines and Gateway (19)"
+      }
+    },
+    renault: {
+      P0171: {
+        ar: "خليط وقود فقير (رينو) — فحص حساس MAP/MAF، تسرب هواء السحب، أو ضغط مضخة الوقود",
+        fr: "Mélange trop pauvre (Renault) — vérifier capteur pression/débit, prise d'air admission ou pompe carburant",
+        en: "System Too Lean (Renault) — check intake air leak, MAP/MAF sensor, or fuel rail pressure"
+      },
+      P0340: {
+        ar: "خلل في حساس عمود الكامات (رينو) — فحص إشارة الحساس، بكرة الكامة، أو تزامن التوقيت (Distribution)",
+        fr: "Défaut capteur arbre à cames (Renault) — vérifier signal capteur, poulie déphaseur ou calage distribution",
+        en: "Camshaft Position Sensor Circuit (Renault) — inspect sensor signal, cam phaser, or timing belt alignment"
+      }
+    },
+    toyota: {
+      P0401: {
+        ar: "تدفق غير كافٍ في نظام EGR (تويوتا) — تنظيف صمام EGR وممرات السحب وفحص حساس ضغط غازات العادم",
+        fr: "Débit EGR insuffisant (Toyota) — nettoyer vanne EGR/conduits d'admission et vérifier capteur différentiel",
+        en: "EGR Flow Insufficient (Toyota) — clean EGR valve/intake passages and verify differential pressure sensor"
+      }
+    }
+  };
+
+  const UI_LABELS = {
+    ar: {
+      panelTitle: "التشخيص الأوتوماتيكي حسب رقم الشاسيه (VIN) والشركة المصنّعة",
+      btnSerial: "اتصال وفحص تلقائي (USB / ELM327)",
+      btnBackend: "فحص عبر المنصة / Flask",
+      btnDemo: "تجربة فورية (VIN تجريبي)",
+      vinLabel: "رقم الشاسيه (VIN - 17 خانة):",
+      btnAnalyze: "تحليل وتشخيص الآن",
+      lblMfg: "الشركة المصنّعة:",
+      lblYear: "الفئة / سنة الطراز:",
+      lblRegion: "منطقة / بلد الصنع:",
+      lblEcus: "وحدات التحكم (ECU):",
+      dtcTitle: "الأعطال المشخصة حسب الشركة المصنّعة واللغة المختارة",
+      thCode: "الكود",
+      thSystem: "النظام / الفئة",
+      thBrand: "تخصيص الشركة المصنّعة",
+      thDesc: "الوصف التشخيصي",
+      emptyRow: "لم يتم قراءة أكواد أعطال بعد.",
+      unknownMfg: "شركة غير مسجلة في الجدول (فحص قياسي OBD-II)",
+      unknownRegion: "غير محدد",
+      defaultEcus: "ECM / TCM / ABS / SRS / CAN",
+      invalidVin: "تنبيه: رقم الشاسيه القياسي يتكون من 17 خانة (بدون I و O و Q).",
+      scanning: "جارٍ قراءة رقم الشاسيه وتشخيص الأعطال تلقائياً...",
+      done: "اكتمل التحليل والتشخيص التلقائي بنجاح.",
+      sysP: "محرك / ناقل حركة (Powertrain)",
+      sysC: "هيكل / فرامل ABS (Chassis)",
+      sysB: "جسم / تجهيزات (Body)",
+      sysU: "شبكة اتصال CAN (Network)",
+      brandMatched: "مطابق لقاموس الشركة",
+      brandGeneric: "عام / قياسي"
+    },
+    fr: {
+      panelTitle: "Diagnostic Automatique par VIN et Constructeur",
+      btnSerial: "Connexion & Scan Auto (USB / ELM327)",
+      btnBackend: "Scan via Plateforme / Flask",
+      btnDemo: "Test Instantané (VIN Démo)",
+      vinLabel: "Numéro VIN (17 caractères) :",
+      btnAnalyze: "Analyser et Diagnostiquer",
+      lblMfg: "Constructeur :",
+      lblYear: "Modèle / Année :",
+      lblRegion: "Région / Pays :",
+      lblEcus: "Calculateurs (ECU) :",
+      dtcTitle: "Codes Défauts Diagnostiqués selon le Constructeur",
+      thCode: "Code",
+      thSystem: "Système / Catégorie",
+      thBrand: "Spécificité Constructeur",
+      thDesc: "Description Diagnostique",
+      emptyRow: "Aucun code défaut lu pour le moment.",
+      unknownMfg: "Constructeur non listé (Diagnostic générique OBD-II)",
+      unknownRegion: "Non spécifié",
+      defaultEcus: "ECM / TCM / ABS / SRS / CAN",
+      invalidVin: "Attention : un VIN standard comporte 17 caractères (sans I, O et Q).",
+      scanning: "Lecture du VIN et diagnostic automatique des défauts...",
+      done: "Analyse et diagnostic automatique terminés.",
+      sysP: "Moteur / Boîte (Powertrain)",
+      sysC: "Châssis / Freinage ABS",
+      sysB: "Carrosserie (Body)",
+      sysU: "Réseau CAN (Network)",
+      brandMatched: "Spécifique constructeur",
+      brandGeneric: "Générique"
+    },
+    en: {
+      panelTitle: "Automatic VIN & Manufacturer Diagnostics",
+      btnSerial: "Auto Connect & Scan (USB / ELM327)",
+      btnBackend: "Scan via Platform / Flask",
+      btnDemo: "Instant Test (Sample VIN)",
+      vinLabel: "VIN Number (17 characters):",
+      btnAnalyze: "Analyze & Diagnose",
+      lblMfg: "Manufacturer:",
+      lblYear: "Trim / Model Year:",
+      lblRegion: "Region / Country:",
+      lblEcus: "ECU Modules:",
+      dtcTitle: "Diagnosed DTCs by Manufacturer & Selected Language",
+      thCode: "Code",
+      thSystem: "System / Category",
+      thBrand: "Manufacturer Context",
+      thDesc: "Diagnostic Description",
+      emptyRow: "No DTC codes read yet.",
+      unknownMfg: "Manufacturer not in table (Generic OBD-II)",
+      unknownRegion: "Unspecified",
+      defaultEcus: "ECM / TCM / ABS / SRS / CAN",
+      invalidVin: "Notice: A standard VIN has 17 characters (excluding I, O, and Q).",
+      scanning: "Reading VIN and automatically diagnosing fault codes...",
+      done: "Automatic analysis and diagnosis completed.",
+      sysP: "Engine / Transmission (Powertrain)",
+      sysC: "Chassis / ABS Brakes",
+      sysB: "Body / Interior",
+      sysU: "CAN Network",
+      brandMatched: "Manufacturer-specific",
+      brandGeneric: "Generic"
+    }
+  };
+
+  let lastScanState = { vin: "", dtcs: [] };
+
+  function getActiveLang() {
+    const htmlLang = (document.documentElement.getAttribute("lang") || "").toLowerCase();
+    if (htmlLang.startsWith("fr")) return "fr";
+    if (htmlLang.startsWith("en")) return "en";
+    if (htmlLang.startsWith("ar")) return "ar";
+    return "ar";
+  }
+
+  function setStatusMessage(msg) {
+    const el = document.getElementById("vinStatusBanner");
+    if (el) el.textContent = msg;
+  }
+
+  function syncManufacturerDropdown(mfgKey) {
+    if (!mfgKey) return;
+    const selects = document.querySelectorAll("select");
+    selects.forEach((sel) => {
+      for (const opt of sel.options) {
+        const val = (opt.value || "").toLowerCase();
+        const txt = (opt.textContent || "").toLowerCase();
+        if (val.includes(mfgKey) || txt.includes(mfgKey)) {
+          sel.value = opt.value;
+          sel.dispatchEvent(new Event("change", { bubbles: true }));
+          break;
+        }
+      }
+    });
+  }
+
+  function decodeVin(rawVin) {
+    const lang = getActiveLang();
+    const t = UI_LABELS[lang];
+    const vin = String(rawVin || "").toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "").slice(0, 17);
+    const wmi3 = vin.slice(0, 3);
+    const wmi2 = vin.slice(0, 2);
+    const vds = vin.slice(3, 8);
+    const yearChar = vin.charAt(9);
+    const serial = vin.slice(11, 17);
+
+    let mfgInfo = WMI_MANUFACTURERS[wmi3] || null;
+    if (!mfgInfo) {
+      if (wmi2 === "VF") mfgInfo = WMI_MANUFACTURERS.VF1;
+      else if (wmi2 === "WV" || wmi2 === "W0") mfgInfo = WMI_MANUFACTURERS.WVW;
+      else if (wmi2 === "JT") mfgInfo = WMI_MANUFACTURERS.JTD;
+      else if (wmi2 === "KM") mfgInfo = WMI_MANUFACTURERS.KMH;
+      else if (wmi2 === "KN") mfgInfo = WMI_MANUFACTURERS.KNA;
+    }
+
+    const modelYear = VIN_YEAR_MAP[yearChar] || "";
+    const manufacturerName = mfgInfo ? mfgInfo[lang] : t.unknownMfg;
+    const regionName = mfgInfo ? mfgInfo.region[lang] : t.unknownRegion;
+    const ecusText = mfgInfo ? mfgInfo.ecus.join(" • ") : t.defaultEcus;
+    const modelYearDisplay = [vds ? `VDS: ${vds}` : "", modelYear ? `${modelYear}` : "", serial ? `#${serial}` : ""]
+      .filter(Boolean)
+      .join(" | ") || "—";
+
+    // السطور 1307 إلى 1310 داخل decodeVin
+const setVinField = (ids, val) => {
+    for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = val;
+            return;
+        }
+    }
+};
+
+setVinField(["valManufacturer"], manufacturerName);
+setVinField(["valModelYear"], modelYearDisplay);
+setVinField(["valRegion"], regionName);
+setVinField(["valEcuSystems", "valEcus"], ecusText);
+
+    if (mfgInfo && mfgInfo.key) {
+      syncManufacturerDropdown(mfgInfo.key);
+    }
+
+    return {
+      vin,
+      validFormat: vin.length === 17,
+      mfgKey: mfgInfo ? mfgInfo.key : "generic",
+      manufacturerName,
+      modelYear,
+      ecus: mfgInfo ? mfgInfo.ecus : ["ECM", "TCM", "ABS", "SRS"]
+    };
+  }
+
+  function getCategorySystem(code, lang) {
+    const t = UI_LABELS[lang];
+    const first = String(code || "").charAt(0).toUpperCase();
+    if (first === "C") return t.sysC;
+    if (first === "B") return t.sysB;
+    if (first === "U") return t.sysU;
+    return t.sysP;
+  }
+
+  function autoSaveDtcToCustomDb(code, descriptionsByLang) {
+    try {
+      if (typeof getCustomDictionary === "function") {
+        const db = getCustomDictionary();
+        if (db && typeof db === "object") {
+          db[code] = Object.assign({}, db[code] || {}, descriptionsByLang);
+          if (typeof localStorage !== "undefined") {
+            localStorage.setItem("customDtcDictionary", JSON.stringify(db));
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  function resolveDiagnosticDescription(code, mfgKey, lang) {
+    const cleanCode = String(code || "").toUpperCase().trim();
+    const brandEntry = BRAND_SPECIFIC_DTC[mfgKey] && BRAND_SPECIFIC_DTC[mfgKey][cleanCode];
+
+    if (brandEntry && brandEntry[lang]) {
+      return {
+        description: brandEntry[lang],
+        isBrandSpecific: true
+      };
+    }
+
+    let baseDesc = "";
+    if (typeof getDtcDescription === "function") {
+      baseDesc = getDtcDescription(cleanCode, lang);
+    } else if (typeof generateAutoDescription === "function") {
+      baseDesc = generateAutoDescription(cleanCode, lang);
+    } else {
+      baseDesc = cleanCode;
+    }
+
+    return {
+      description: baseDesc,
+      isBrandSpecific: false
+    };
+  }
+
+  function renderDiagnosedDtcs(dtcList, mfgInfo) {
+    const lang = getActiveLang();
+    const t = UI_LABELS[lang];
+   // السطر 1389 داخل renderDiagnosedDtcs
+const tbody =
+        document.getElementById("autoDtcTableBody") ||
+        document.getElementById("autoVinDtcBody") ||
+        document.getElementById("vinDtcTableBody") ||
+        document.getElementById("dtcTableBody") ||
+        document.querySelector("#autoVinDiagnosticSection tbody");
+    if (!tbody) return;
+tbody.innerHTML = "";
+    const rawList =
+        typeof dtcList !== "undefined"
+            ? dtcList
+            : typeof dtcs !== "undefined"
+            ? dtcs
+            : [];
+    const list = Array.isArray(rawList)
+        ? rawList
+        : rawList && typeof rawList === "object"
+        ? Object.values(rawList)
+        : [];
+    
+
+    list.forEach((entry) => {
+        const code = typeof entry === "string"
+            ? entry.trim().toUpperCase()
+            : String(entry?.code || entry?.dtc || "").trim().toUpperCase();
+        if (!code) return;
+
+        const resolved = resolveDiagnosticDescription(code, mfgInfo.mfgKey, lang);
+        const sysName = getCategorySystem(code, lang);
+        const brandLabel = resolved.isBrandSpecific
+            ? `${mfgInfo.manufacturerName} (${t.brandMatched})`
+            : `${t.brandGeneric}`;
+
+        const arDesc = resolveDiagnosticDescription(code, mfgInfo.mfgKey, "ar").description;
+        const frDesc = resolveDiagnosticDescription(code, mfgInfo.mfgKey, "fr").description;
+        const enDesc = resolveDiagnosticDescription(code, mfgInfo.mfgKey, "en").description;
+        autoSaveDtcToCustomDb(code, { ar: arDesc, fr: frDesc, en: enDesc });
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${code}</td>
+            <td>${sysName}</td>
+            <td>${brandLabel}</td>
+            <td>${resolved.description}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+  window.processVinAndDiagnose = function processVinAndDiagnose(overrideVin, overrideDtcs) {
+    const lang = getActiveLang();
+    const t = UI_LABELS[lang];
+    const inputEl = document.getElementById("vinCodeInput");
+    const rawVin = typeof overrideVin === "string" ? overrideVin : (inputEl ? inputEl.value : "");
+    const mfgInfo = decodeVin(rawVin);
+
+    if (inputEl && mfgInfo.vin) {
+      inputEl.value = mfgInfo.vin;
+    }
+
+    const dtcsToUse = Array.isArray(overrideDtcs)
+      ? overrideDtcs
+      : (lastScanState.vin === mfgInfo.vin && lastScanState.dtcs.length
+          ? lastScanState.dtcs
+          : ["P0171", "P0299", "U0100"]);
+
+    lastScanState = { vin: mfgInfo.vin, dtcs: dtcsToUse };
+    renderDiagnosedDtcs(dtcsToUse, mfgInfo);
+
+    if (!mfgInfo.validFormat) {
+      setStatusMessage(`${t.invalidVin} (${t.done})`);
+    } else {
+      setStatusMessage(`${t.done} — VIN: ${mfgInfo.vin}`);
+    }
+  };
+
+  window.handleManualVinInput = function handleManualVinInput(val) {
+    const clean = String(val || "").toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "").slice(0, 17);
+    const inputEl = document.getElementById("vinCodeInput");
+    if (inputEl && inputEl.value !== clean) {
+      inputEl.value = clean;
+    }
+    if (clean.length >= 3) {
+      decodeVin(clean);
+    }
+  };
+
+ // السطور 1450 إلى 1457
+window.runDemoVinScan = function runDemoVinScan() {
+    const lang = getActiveLang();
+    setStatusMessage(UI_LABELS[lang].scanning);
+    const sampleVin = "WVWZZZ1KZ9W123456";
+    const sampleDtcs = ["P0299", "P0171", "C0035", "U0100"];
+    const vinInput = document.getElementById("vinCodeInput") || document.getElementById("autoVinInput");
+    if (vinInput) vinInput.value = sampleVin;
+    window.processVinAndDiagnose(sampleVin, sampleDtcs);
+};
+
+  window.scanViaBackendOrDemo = async function scanViaBackendOrDemo() {
+    const lang = getActiveLang();
+    const t = UI_LABELS[lang];
+    setStatusMessage(t.scanning);
+    try {
+      const resp = await fetch("/api/auto-scan", { method: "GET" });
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const data = await resp.json();
+      const vin = data.vin || document.getElementById("vinCodeInput").value || "";
+      const dtcs = Array.isArray(data.dtcs) ? data.dtcs : [];
+      document.getElementById("vinCodeInput").value = vin;
+      window.processVinAndDiagnose(vin, dtcs);
+    } catch (_) {
+      window.runDemoVinScan();
+    }
+  };
+
+  function parseElmVin(rawResponse) {
+    const hexOnly = String(rawResponse || "").replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
+    const bytes = [];
+    for (let i = 0; i + 1 < hexOnly.length; i += 2) {
+      bytes.push(parseInt(hexOnly.slice(i, i + 2), 16));
+    }
+    const ascii = bytes
+      .map((b) => (b >= 48 && b <= 90 ? String.fromCharCode(b) : ""))
+      .join("")
+      .replace(/[^A-HJ-NPR-Z0-9]/g, "");
+    const match = ascii.match(/[A-HJ-NPR-Z0-9]{17}/);
+    return match ? match[0] : ascii.slice(0, 17);
+  }
+
+  function parseElmDtcs(rawResponse) {
+    const cleaned = String(rawResponse || "")
+      .replace(/SEARCHING\.\.\.|NO DATA|STOPPED|OK|>/gi, " ")
+      .toUpperCase();
+    const directCodes = cleaned.match(/\b[PCBU][0-9A-F]{4}\b/g);
+    if (directCodes && directCodes.length) {
+      return Array.from(new Set(directCodes));
+    }
+    const hexTokens = cleaned.match(/\b[0-9A-F]{2}\b/g) || [];
+    const dtcs = [];
+    const prefixes = ["P", "C", "B", "U"];
+    for (let i = 0; i + 1 < hexTokens.length; i += 2) {
+      const b1 = parseInt(hexTokens[i], 16);
+      const b2 = hexTokens[i + 1];
+      if (b1 === 0 && b2 === "00") continue;
+      const sysIdx = (b1 >> 6) & 0x03;
+      const firstDigit = ((b1 >> 4) & 0x03).toString(16).toUpperCase();
+      const secondDigit = (b1 & 0x0f).toString(16).toUpperCase();
+      const code = `${prefixes[sysIdx]}${firstDigit}${secondDigit}${b2}`;
+      if (/^[PCBU][0-9A-F]{4}$/.test(code)) {
+        dtcs.push(code);
+      }
+    }
+    return Array.from(new Set(dtcs));
+  }
+
+  window.connectObdSerialAndScan = async function connectObdSerialAndScan() {
+    const lang = getActiveLang();
+    const t = UI_LABELS[lang];
+
+    if (!("serial" in navigator)) {
+      setStatusMessage("Web Serial غير مدعوم في هذا المتصفح (اتخدم Chrome أو Edge مع كابل USB/ELM327).");
+      return;
+    }
+
+    let port;
+    let writer;
+    let reader;
+    try {
+      setStatusMessage(t.scanning);
+      port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 38400 });
+
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+      writer = port.writable.getWriter();
+      reader = port.readable.getReader();
+
+      async function sendAtCommand(cmd, waitMs = 450) {
+        await writer.write(encoder.encode(cmd + "\r"));
+        let buffer = "";
+        const start = Date.now();
+        while (Date.now() - start < waitMs) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            buffer += decoder.decode(value, { stream: true });
+            if (buffer.includes(">")) break;
+          }
+        }
+        return buffer;
+      }
+
+      await sendAtCommand("ATZ", 900);
+      await sendAtCommand("ATE0", 300);
+      await sendAtCommand("ATL0", 300);
+      await sendAtCommand("ATSP0", 500);
+
+      const vinRaw = await sendAtCommand("0902", 900);
+      const dtcRaw = await sendAtCommand("03", 900);
+
+      const vin = parseElmVin(vinRaw);
+      const dtcs = parseElmDtcs(dtcRaw);
+
+      if (vin) {
+        document.getElementById("vinCodeInput").value = vin;
+      }
+      window.processVinAndDiagnose(vin, dtcs);
+    } catch (err) {
+      setStatusMessage(`تعذر إتمام الاتصال التسلسلي: ${err && err.message ? err.message : err}`);
+    } finally {
+      try { if (reader) { await reader.cancel(); reader.releaseLock(); } } catch (_) {}
+      try { if (writer) { writer.releaseLock(); } } catch (_) {}
+      try { if (port) { await port.close(); } } catch (_) {}
+    }
+  };
+
+  function applyAutoVinTranslations() {
+    const lang = getActiveLang();
+    const t = UI_LABELS[lang];
+
+    const mapText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+
+    mapText("vinPanelTitle", t.panelTitle);
+    mapText("btnConnectSerial", t.btnSerial);
+    mapText("btnScanBackend", t.btnBackend);
+    mapText("btnDemoScan", t.btnDemo);
+    mapText("vinInputLabel", t.vinLabel);
+    mapText("btnAnalyzeVin", t.btnAnalyze);
+    mapText("lblManufacturer", t.lblMfg);
+    mapText("lblModelYear", t.lblYear);
+    mapText("lblRegion", t.lblRegion);
+    mapText("lblEcus", t.lblEcus);
+    mapText("dtcResultsTitle", t.dtcTitle);
+    mapText("thCode", t.thCode);
+    mapText("thSystem", t.thSystem);
+    mapText("thBrand", t.thBrand);
+    mapText("thDesc", t.thDesc);
+
+    if (lastScanState.vin || lastScanState.dtcs.length) {
+      const mfgInfo = decodeVin(lastScanState.vin);
+      renderDiagnosedDtcs(lastScanState.dtcs, mfgInfo);
+    } else {
+      mapText("emptyDtcRow", t.emptyRow);
+    }
+  }
+
+  const observer = new MutationObserver(() => {
+    applyAutoVinTranslations();
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["lang", "dir"] });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    applyAutoVinTranslations();
+  });
+  applyAutoVinTranslations();
     
 
 
@@ -2501,13 +3196,13 @@ async function autoPushCodeToFlask(codeObj) {
             console.warn("تفاصيل رفض Flask:", res ? res.status : "", errText);
             return false;
         }
-        return true;
-    } catch (err) {
+        return true; 
+} catch (err) {
         console.warn("تم تخطي الإرسال التلقائي إلى Flask:", err);
         return false;
     }
 }
-
+})();
     </script>
     <script type="module">
         // 1. استيراد مكتبات Firebase من شبكة CDN الرسمية
@@ -2550,12 +3245,12 @@ async function autoPushCodeToFlask(codeObj) {
             const data = snapshot.val();
             if (data) {
                 console.log("تم استقبال البيانات المحدثة من السحابة:", data);
-                
+
                 let localDb = JSON.parse(localStorage.getItem('ecu_custom_learned_codes_v2') || '{}');
                 let updated = false;
 
                 for (let key in data) {
-                    if (key.startsWith('feedback_')) continue; // استثناء رسائل التقيمات
+                    if (key.startsWith('feedback_')) continue; // استثناء رسائل التقييمات
                     let item = data[key];
                     let desc = typeof item === 'object' ? (item.ar || item.description || key) : item;
 
@@ -2573,12 +3268,273 @@ async function autoPushCodeToFlask(codeObj) {
                 if (updated) {
                     localStorage.setItem('ecu_custom_learned_codes_v2', JSON.stringify(localDb));
                 }
+            }
 
-                if (typeof renderDictionaryList === "function") {
-                    renderDictionaryList();
-                }
+            if (typeof renderDictionaryList === "function") {
+                renderDictionaryList();
             }
         });
     </script>
+
+    <script>
+        window.setLanguage = function (lang) {
+            if (typeof applyAutoVinTranslations === "function") {
+                applyAutoVinTranslations(lang);
+            }
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+        };
+        window.setLanguage = function (lang) {
+            if (typeof applyAutoVinTranslations === "function") {
+                applyAutoVinTranslations(lang);
+            }
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+        };
+
+        window.syncWithFlaskServer = async function () {
+            try {
+                const res = await fetch("/api/sync", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+                if (!res.ok) {
+                    console.info("خادم Flask غير متاح حالياً، يعمل النظام بالوضع المحلي.");
+                    return false;
+                }
+                return await res.json();
+            } catch (err) {
+                console.info("العمل بالوضع المحلي بدون خادم Flask.");
+                return false;
+            }
+ };
+ </script>
+<script>
+(function () {
+    const VIN_YEAR_MAP = {
+        "A": 2010, "B": 2011, "C": 2012, "D": 2013, "E": 2014,
+        "F": 2015, "G": 2016, "H": 2017, "J": 2018, "K": 2019,
+        "L": 2020, "M": 2021, "N": 2022, "P": 2023, "R": 2024,
+        "S": 2025, "T": 2026, "V": 2027, "W": 2028, "X": 2029,
+        "Y": 2030, "1": 2001, "2": 2002, "3": 2003, "4": 2004,
+        "5": 2005, "6": 2006, "7": 2007, "8": 2008, "9": 2009
+    };
+
+    const VIN_COUNTRY_MAP = {
+        "1": "الولايات المتحدة", "2": "كندا", "3": "المكسيك",
+        "4": "الولايات المتحدة", "5": "الولايات المتحدة", "6": "أستراليا",
+        "9": "البرازيل", "J": "اليابان", "K": "كوريا الجنوبية",
+        "L": "الصين", "S": "المملكة المتحدة", "V": "فرنسا / إسبانيا",
+        "W": "ألمانيا", "Y": "السويد / فنلندا", "Z": "إيطاليا"
+    };
+
+    const VIN_BRAND_PROFILES = {
+        "WVW": {
+            brand: "فولكس فاجن (Volkswagen)",
+            country: "ألمانيا",
+            ecus: "Engine (01) • Auto Trans (02) • ABS Brakes (03) • Airbag (15) • CAN Gateway (19)",
+            oemTag: "فولكس فاجن (Volkswagen) (مطابق لقاموس الشركة)"
+        },
+        "WAU": {
+            brand: "أودي (Audi)",
+            country: "ألمانيا",
+            ecus: "Engine (01) • Auto Trans (02) • ABS/ESP (03) • MMI / Gateway (19)",
+            oemTag: "أودي (Audi) (مطابق لقاموس الشركة)"
+        },
+        "WBA": {
+            brand: "بي إم دبليو (BMW)",
+            country: "ألمانيا",
+            ecus: "DME/DDE • EGS • DSC/ABS • Airbag • FRM / ZGM",
+            oemTag: "بي إم دبليو (BMW) (مطابق لقاموس الشركة)"
+        },
+        "JTD": {
+            brand: "تويوتا (Toyota)",
+            country: "اليابان",
+            ecus: "ECM • ECT • ABS/VSC • SRS Airbag • Body ECU",
+            oemTag: "تويوتا (Toyota) (مطابق لقاموس الشركة)"
+        },
+        "KMH": {
+            brand: "هيونداي (Hyundai)",
+            country: "كوريا الجنوبية",
+            ecus: "Engine ECU • TCM • ABS/ESP • SRS • BCM",
+            oemTag: "هيونداي (Hyundai) (مطابق لقاموس الشركة)"
+        },
+        "VF3": {
+            brand: "بيجو (Peugeot)",
+            country: "فرنسا",
+            ecus: "Injection (CMM) • Gearbox (BV) • ABS/ESP • Airbag • BSI",
+            oemTag: "بيجو (Peugeot) (مطابق لقاموس الشركة)"
+        },
+        "5YJ": {
+            brand: "تسلا (Tesla)",
+            country: "الولايات المتحدة",
+            ecus: "Drive Inverter • BMS • Autopilot/ADAS • Body Controller • Gateway",
+            oemTag: "تسلا (Tesla) (مطابق لقاموس الشركة)"
+        }
+    };
+
+    const BASE_DTC_LIST = [
+        { code: "P0299", system: "محرك / ناقل حركة (Powertrain)", genericDesc: "انخفاض ضغط الشحن عن القيمة المطلوبة — فحص الخراطيم والصمامات وشاحن التوربو" },
+        { code: "P0171", system: "محرك / ناقل حركة (Powertrain)", genericDesc: "النظام فقير جداً في الوقود (البنك 1) — فحص حساس MAF وضغط الوقود والتسرب الهوائي" },
+        { code: "C0035", system: "هيكل / فرامل ABS (Chassis)", genericDesc: "دائرة حساس سرعة العجلة الأمامية اليسرى — فحص الحساس والأسلاك والحلقة المغناطيسية" },
+        { code: "U0100", system: "شبكة اتصال CAN (Network)", genericDesc: "فقدان الاتصال بوحدة التحكم في المحرك عبر شبكة CAN — فحص خطوط CAN-H / CAN-L والتغذية" }
+    ];
+
+    function normalizeVin(raw) {
+        return String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    }
+
+    function buildVinProfile(rawVin) {
+        const vin = normalizeVin(rawVin);
+        const wmi3 = vin.slice(0, 3);
+        const wmi2 = vin.slice(0, 2);
+        const firstChar = vin.charAt(0);
+        const yearChar = vin.charAt(9);
+        const vds = vin.slice(3, 9) || "------";
+        const serial = vin.slice(11) || "------";
+
+        let country = VIN_COUNTRY_MAP[firstChar] || "غير معروف";
+        if (wmi2 === "VF") country = "فرنسا";
+        if (wmi2 === "VS") country = "إسبانيا";
+
+        const known = VIN_BRAND_PROFILES[wmi3];
+        const brand = known ? known.brand : (wmi3 ? "شركة غير مسجلة (" + wmi3 + ")" : "-");
+        const finalCountry = known && known.country ? known.country : (vin ? country : "-");
+        const year = vin.length >= 10 && VIN_YEAR_MAP[yearChar] ? VIN_YEAR_MAP[yearChar] : "-";
+        const trimText = vin ? ("VDS: " + vds + " | " + year + " | #" + serial) : "-";
+        const ecus = known ? known.ecus : (vin ? "Engine ECU • ABS • Airbag • Gateway" : "-");
+        const oemTag = known ? known.oemTag : (brand !== "-" ? (brand + " (تخصيص افتراضي)") : "عام / قياسي");
+
+        return { vin, brand, country: finalCountry, year, trimText, ecus, oemTag };
+    }
+
+    function findExactLeafByText(labels) {
+        const candidates = Array.from(document.querySelectorAll("span, strong, b, small, code, em, i, p, div, td"));
+        for (let i = 0; i < candidates.length; i += 1) {
+            const el = candidates[i];
+            if (el.children.length > 0) continue;
+            const txt = String(el.textContent || "").trim();
+            if (!txt || txt.length > 90) continue;
+            const matched = labels.some(function (label) {
+                return txt.indexOf(label) === 0 || txt === label;
+            });
+            if (matched) return el;
+        }
+        return null;
+    }
+
+    function updateLabeledElement(el, labelPrefix, newValue) {
+        if (!el) return;
+        const txt = String(el.textContent || "").trim();
+        const colonIndex = txt.indexOf(":");
+        if (colonIndex !== -1) {
+            const baseLabel = txt.slice(0, colonIndex).trim();
+            el.textContent = baseLabel + ": " + newValue;
+        } else {
+            el.textContent = labelPrefix + ": " + newValue;
+        }
+    }
+
+    function renderMatchedDtcs(profile) {
+        const tbody = document.querySelector("table tbody");
+        if (!tbody) return;
+
+        if (!profile.vin || profile.vin.length < 17) {
+            tbody.innerHTML = "";
+            return;
+        }
+
+        tbody.innerHTML = BASE_DTC_LIST.map(function (item) {
+            const isCustom = item.code === "P0299" || item.code === "U0100";
+            const customCol = isCustom ? profile.oemTag : "عام / قياسي";
+            const descCol = isCustom
+                ? (item.genericDesc + " — مطابق لملف " + profile.brand)
+                : item.genericDesc;
+
+            return (
+                "<tr>" +
+                "<td>" + item.code + "</td>" +
+                "<td>" + item.system + "</td>" +
+                "<td>" + customCol + "</td>" +
+                "<td>" + descCol + "</td>" +
+                "</tr>"
+            );
+        }).join("");
+    }
+
+    function syncAllDashboardData(rawVin, includeDtcs) {
+        const profile = buildVinProfile(rawVin);
+
+        const brandEl =
+            document.getElementById("vinManufacturer") ||
+            findExactLeafByText(["الشركة المصنّعة", "الشركة المصنعة"]);
+
+        const countryEl =
+            document.getElementById("vinCountry") ||
+            findExactLeafByText(["منطقة / بلد الصنع", "بلد الصنع"]);
+
+        const trimEl =
+            document.getElementById("vinModelYear") ||
+            findExactLeafByText(["الفئة / سنة الطراز", "سنة الطراز"]);
+
+        const ecuEl =
+            document.getElementById("vinEcus") ||
+            findExactLeafByText(["وحدات التحكم (ECU)", "وحدات التحكم"]);
+
+        updateLabeledElement(brandEl, "الشركة المصنّعة", profile.brand);
+        updateLabeledElement(countryEl, "منطقة / بلد الصنع", profile.country);
+        updateLabeledElement(trimEl, "الفئة / سنة الطراز", profile.trimText);
+        updateLabeledElement(ecuEl, "وحدات التحكم (ECU)", profile.ecus);
+
+        if (includeDtcs) {
+            renderMatchedDtcs(profile);
+        }
+    }
+
+    function findVinInput() {
+        return (
+            document.getElementById("vinInput") ||
+            document.getElementById("vin") ||
+            document.querySelector('input[placeholder*="WVW"], input[placeholder*="VIN" i], input[id*="vin" i]')
+        );
+    }
+
+    function bindEvents() {
+        const vinInput = findVinInput();
+        if (vinInput) {
+            vinInput.addEventListener("input", function () {
+                const cleaned = normalizeVin(vinInput.value);
+                if (cleaned.length === 17) {
+                    syncAllDashboardData(cleaned, true);
+                } else if (cleaned.length === 0) {
+                    syncAllDashboardData("", true);
+                }
+            });
+        }
+
+        document.addEventListener("click", function (ev) {
+            const btn = ev.target.closest("button");
+            if (!btn) return;
+            const label = String(btn.textContent || "").trim();
+
+            if (label.indexOf("تحليل وتشخيص الآن") !== -1 || label.indexOf("تجربة فورية") !== -1) {
+                setTimeout(function () {
+                    const latestInput = findVinInput();
+                    const latestVin = latestInput ? normalizeVin(latestInput.value) : "";
+                    if (latestVin.length >= 3) {
+                        syncAllDashboardData(latestVin, true);
+                    }
+                }, 60);
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bindEvents);
+    } else {
+        bindEvents();
+    }
+})();
+</script>
 </body>
 </html>
